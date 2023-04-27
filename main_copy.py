@@ -15,8 +15,8 @@ add hostile mobs
 import pygame as pg
 import os
 # import settings and sprites files
-from settings import *
-from sprites import *
+from settings_copy import *
+from sprites_copy import *
 # import sleep function
 from time import sleep
 
@@ -54,12 +54,15 @@ class Game:
         p_image_rect = p_image.get_rect()
         pt_image = pg.image.load(os.path.join(img_folder, "thruster.png")).convert()
         pt_image_rect = pt_image.get_rect()
-        pimgs = [p_image, p_image_rect, pt_image, pt_image_rect]
+        pimgs = [p_image, p_image_rect]
+        ptimgs = [pt_image, p_image_rect]
         # defines player with the image
-        self.player = Player(self, pimgs, self.screen)
+        self.player = Player(self, pimgs, self.screen, "cont")
+        self.playert = Player(self, ptimgs, self.screen, "thrust")
         # self.plat1 = Platform(WIDTH, 50, 0, HEIGHT-50, (150,150,150), "normal")
         # player added to sprites list
         self.all_sprites.add(self.player)
+        self.all_sprites.add(self.playert)
         
         # for plat in PLATFORM_LIST:
         #     p = Platform(*plat)

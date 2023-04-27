@@ -2,7 +2,7 @@
 import pygame as pg
 from pygame.sprite import Sprite
 # settings file
-from settings import *
+from settings_copy import *
 # randint function
 from random import randint
 from random import choice
@@ -18,43 +18,35 @@ vec = pg.math.Vector2
 
 class Player(Sprite):
     # starting attributes of player
-    def __init__(self, game, img_folder, screen):
+    def __init__(self, game, img_folder, screen, typ):
         Sprite.__init__(self)
         # these are the properties
         # game class
         self.simg = img_folder[0]
         self.simg_rect = img_folder[1]
-        self.timg = img_folder[2]
-        self.timg_rect = img_folder[3]
         self.simg.set_colorkey(BLACK)
-        self.timg.set_colorkey(BLACK)
         self.game = game
         self.image_orig = pg.transform.scale(self.simg, (50,100))
-        self.timg_orig = pg.transform.scale(self.timg, (50,100))
-        origs = [self.image_orig,self.timg_orig]
+        orig = self.image_orig
+        self.type = typ
         # how big p is
         self.image = pg.Surface((50,100))
         self.image.set_colorkey(BLACK)
-        self.timage = pg.Surface((50,100))
-        self.timage.set_colorkey(BLACK)
         # self.timage.set_alpha(0)
         # p now has p image
         self.image.blit(self.simg, self.simg_rect)
-        self.timage.blit(self.timg, self.timg_rect)
         # self.timage.blit(self.timg, self.timg_rect)
         
         # p dimensions
         self.rect = self.image.get_rect()
-        self.trect = self.timage.get_rect()
         # where self prolclaimed center is
         self.rect.center = (WIDTH/2, HEIGHT/2)
-        self.trect.center = (WIDTH/2, HEIGHT/2)
         self.rect.center = (0,0)
-        self.trect.center = (0,0)
         # where to spawn player
         self.pos = vec(WIDTH/2, HEIGHT/2 + player_y_len/2)
         self.pos_orig = self.pos
-        self.hitbox = pg.draw.circle(screen ,RED,self.pos,16)
+        if self.type == "cont":
+            self.hitbox = pg.draw.circle(screen ,RED,self.pos,16)
         # starting velocity
         self.vel = vec(0,0)
         # starting acceleration
@@ -79,12 +71,7 @@ class Player(Sprite):
             xvel = vels[0]
             yvel = vels[1]
             # self.image.blit(self.timage,self.rect)
-            self.timage.set_alpha(255)
             print(1)
-            # if self.angle not in x:
-            #     pass
-            # elif abs(self.vel.x) > abs(xvel) and abs(self.vel.y) > abs(yvel):
-            #     pass
             if self.angle in x or abs(self.vel.x) <= abs(xvel) and abs(self.vel.y) <= abs(yvel):
                 if abs(self.vel.x) <= PMAX_VEL and abs(self.vel.y) <= PMAX_VEL:
                     mx_acc = xvel/PMAX_VEL
@@ -95,10 +82,8 @@ class Player(Sprite):
                     my_acc *= -1
                     self.acc.x = mx_acc
                     self.acc.y = my_acc
-                    self.image.blit(self.timage,self.timage.get_rect())
         else:
-            self.timage.set_alpha(0)
-            self.image.set_alpha(100)
+            # self.image.set_alpha(100)
             print(2)
         if keystate[pg.K_1]:
             if self.vel.y > -PMAX_VEL:
@@ -136,14 +121,10 @@ class Player(Sprite):
             self.last_update = now
             self.rot = (self.rot + self.rot_speed) % 360
             new_image = pg.transform.rotate(self.image_orig, self.rot)
-            tnew_image = pg.transform.rotate(self.timg_orig, self.rot)
             old_center = self.rect.center
             self.image = new_image
-            self.timage = tnew_image
             self.rect = self.image.get_rect()
-            self.trect = self.timage.get_rect()
             self.rect.center = old_center
-            self.trect.center = old_center
             # self.image.set_alpha(0)
             
     def inbounds(self):
@@ -162,7 +143,8 @@ class Player(Sprite):
         # top
         if self.pos.y < 0 and self.vel.y < 0:
             self.pos.y = HEIGHT
-            print("i am off the top of the screen...")
+            if self.type == 'thrust':
+                print("i am off the top of the screen...") 
     # when a player hits a mob...
     def mob_collide(self):
             # if a player hits a sprite in enemy list
@@ -183,6 +165,7 @@ class Player(Sprite):
         # velocity, position and origin
         self.vel += self.acc
         self.pos += self.vel + 0.5 * self.acc
+        print(self.rect.center)
         self.rect.center = self.pos
         # self.timage.set_alpha(255)
         # self.image.blit(self.timage,self.timage.get_rect())
