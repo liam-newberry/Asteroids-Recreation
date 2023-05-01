@@ -117,9 +117,18 @@ class Player(Sprite):
             self.rotate()
         if keystate[pg.K_SPACE]:#or pg.MOUSEBUTTONUP:
             now = pg.time.get_ticks()
-            if now - self.last_update > 30:
-                b = Bullet(10)
+            if len(self.game.bullets) == 0 or now - self.game.bullets[0].birth > 200:
+                angle = self.rot - 90
+                direction = unit_cir(angle, BMAX_VEL)
+                direction[0] *= -1
+                position = [self.pos[0],self.pos[1]]
+                location = unit_cir(angle, 36)
+                location[0] *= -1
+                position[0] += location[0]
+                position[1] += location[1]
+                b = Bullet(direction, position, self.game)
                 self.game.all_sprites.add(b)
+                self.game.bullets.append(b)
                 self.game.enemies.add(b)
         c = keystate[pg.CONTROLLER_AXIS_TRIGGERRIGHT]
         # testing stuff
@@ -269,19 +278,20 @@ class Mob(Sprite):
 #         self.variant = variant
 
 class Bullet(Sprite):
-    def __init__(self,direction):
+    def __init__(self,direction,location,game):
         Sprite.__init__(self)
-        self.width = 7
-        self.height = 7
+        self.game = game
+        self.width = B_LEN
+        self.height = B_LEN
         self.image = pg.Surface((self.width,self.height))
         self.color = WHITE
         self.image.fill(self.color)
         self.rect = self.image.get_rect()
-        self.rect.x = 10
-        self.rect.y = 10
+        self.rect.x = B_LEN
+        self.rect.y = B_LEN
         self.acc = vec(0,0)
-        self.vel = vec(35,35)
-        self.pos = vec(WIDTH/2, HEIGHT/2)
+        self.vel = vec(direction)
+        self.pos = vec(location)
         self.birth = pg.time.get_ticks()
     def inbounds(self):
         # right
@@ -302,8 +312,10 @@ class Bullet(Sprite):
         self.pos += self.vel
         self.rect.center = self.pos
         now = pg.time.get_ticks()
-        if now - self.birth > 1000:
+        if now - self.birth > 750:
             self.kill()
+        if len(self.game.bullets) >= 2:
+            self.game.bullets.pop(0)
 
 def unit_cir(angle, max):
     angle *= pi
@@ -312,4 +324,4 @@ def unit_cir(angle, max):
     xval *= max
     yval = sin(angle)
     yval *= max
-    return (xval,yval)
+    return [xval,yval]

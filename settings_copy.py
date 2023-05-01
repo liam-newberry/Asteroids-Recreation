@@ -3,6 +3,8 @@ import pygame as pg
 # screen dimensions
 WIDTH = 1200
 HEIGHT = 900
+WIDTH = 1600
+HEIGHT = 1100
 # player applied settings
 PLAYER_ACC = 0.7
 PLAYER_FRICTION = -0.03
@@ -19,6 +21,9 @@ MOB_CHARGE = ["pos", "neg"]
 MOB_SMALL_IMG_LIST = ["1", "2", "3"]
 MOB_S_X = 53
 MOB_S_Y = 53
+# bullet applied settings
+BMAX_VEL = 50
+B_LEN = 7
 # colors
 BLACK = (0,0,0)
 WHITE = (255,255,255)

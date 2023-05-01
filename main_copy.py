@@ -47,6 +47,7 @@ class Game:
         self.score = 0
         # new place to store sprites
         self.all_sprites = pg.sprite.Group()
+        self.bullets = []
         # new place to store mobs
         self.enemies = pg.sprite.Group()
         # image used on Player
@@ -114,17 +115,6 @@ class Game:
     def update(self):
         # updates the sprites
         self.all_sprites.update()
-        # runs inbounds function in Player class
-        self.player.inbounds()  
-        # if not self.keystate[pg.K_w]:
-        #     if self.player.timage.get_alpha() != 0:
-        #         self.player.timage.set_alpha(0)
-    #     if self.keystate[pg.K_w]:
-    #         self.player.timage.set_alpha(255)
-    #     else:
-    #         # self.player.timage.set_alpha(0)
-    #         pass
-    # # all draw functions
     def draw(self):
         #make background black
         self.screen.fill(BLACK)
