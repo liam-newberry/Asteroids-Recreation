@@ -1,3 +1,4 @@
+# File created by: Liam Newberry
 # import pygame stuff
 import pygame as pg
 from pygame.sprite import Sprite
@@ -63,15 +64,19 @@ class Player(Sprite):
         keystate = pg.key.get_pressed()
         # key_up = pg.KEYUP[pg.K_SPACE]
         # w moves up
-        if keystate[pg.K_w]:
+        if keystate[pg.K_w] or keystate[pg.K_UP]:
             x = [90,180,270,360]
             self.angle = self.rot
             self.angle += 90
             vels = unit_cir(self.angle, PMAX_VEL)
             xvel = vels[0]
             yvel = vels[1]
-            # self.image.blit(self.timage,self.rect)
-            print(1)
+            if self.type == "thrust":
+                alpha = self.image.get_alpha()
+                if alpha == 0:
+                    self.image.set_alpha(255)
+                elif alpha == 255:
+                    self.image.set_alpha(0)
             if self.angle in x or abs(self.vel.x) <= abs(xvel) and abs(self.vel.y) <= abs(yvel):
                 if abs(self.vel.x) <= PMAX_VEL and abs(self.vel.y) <= PMAX_VEL:
                     mx_acc = xvel/PMAX_VEL
@@ -84,7 +89,10 @@ class Player(Sprite):
                     self.acc.y = my_acc
         else:
             # self.image.set_alpha(100)
-            print(2)
+            # print(2)
+            if self.type == "thrust":
+                self.image.set_alpha(0)
+            # pass
         if keystate[pg.K_1]:
             if self.vel.y > -PMAX_VEL:
                 self.acc.y = -PLAYER_ACC
@@ -101,13 +109,13 @@ class Player(Sprite):
             if self.vel.x < PMAX_VEL:
                 self.acc.x = PLAYER_ACC
         # maybe controller in future?
-        if keystate[pg.K_LEFT]:
+        if keystate[pg.K_LEFT] or keystate[pg.K_a]:
             self.rot_speed = PROT_SPEED
             self.rotate()
-        if keystate[pg.K_RIGHT]:
+        if keystate[pg.K_RIGHT] or keystate[pg.K_d]:
             self.rot_speed = -PROT_SPEED
             self.rotate()
-        if keystate[pg.K_SPACE]:
+        if keystate[pg.K_SPACE]:#or pg.MOUSEBUTTONUP:
             now = pg.time.get_ticks()
             if now - self.last_update > 30:
                 b = Bullet(10)
@@ -118,6 +126,7 @@ class Player(Sprite):
     def rotate(self):
         now = pg.time.get_ticks()
         if now - self.last_update > 30:
+            alpha = self.image.get_alpha()
             self.last_update = now
             self.rot = (self.rot + self.rot_speed) % 360
             new_image = pg.transform.rotate(self.image_orig, self.rot)
@@ -125,7 +134,7 @@ class Player(Sprite):
             self.image = new_image
             self.rect = self.image.get_rect()
             self.rect.center = old_center
-            # self.image.set_alpha(0)
+            self.image.set_alpha(alpha)
             
     def inbounds(self):
         # right
@@ -143,8 +152,7 @@ class Player(Sprite):
         # top
         if self.pos.y < 0 and self.vel.y < 0:
             self.pos.y = HEIGHT
-            if self.type == 'thrust':
-                print("i am off the top of the screen...") 
+            print("i am off the top of the screen...") 
     # when a player hits a mob...
     def mob_collide(self):
             # if a player hits a sprite in enemy list
@@ -162,19 +170,15 @@ class Player(Sprite):
         self.acc.y = self.vel.y * PLAYER_FRICTION
         # runs p input every second
         self.input()
+        self.inbounds()
         # velocity, position and origin
         self.vel += self.acc
         self.pos += self.vel + 0.5 * self.acc
-        print(self.rect.center)
         self.rect.center = self.pos
-        # self.timage.set_alpha(255)
-        # self.image.blit(self.timage,self.timage.get_rect())
-        # self.image.blit(self.image,self.image.get_rect())
-        # self.self.timg
-        # self.image.blit(self.image,self.timage.get_rect())
-        
-
-        #self.bullet.spawn(WIDTH/2, HEIGHT/2, -1)
+        if abs(self.vel.x) < 0.1:
+            self.vel.x = 0
+        if abs(self.vel.y) < 0.1:
+            self.vel.y = 0
 
 # class for Mobs
 class Mob(Sprite):

@@ -1,4 +1,4 @@
-# File
+# File created by: Liam Newberry
 import pygame as pg
 # screen dimensions
 WIDTH = 1200
