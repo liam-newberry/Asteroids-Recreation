@@ -3,15 +3,17 @@ import pygame as pg
 # screen dimensions
 WIDTH = 1200
 HEIGHT = 900
-WIDTH = 1600
-HEIGHT = 1100
+# WIDTH = 1600
+# HEIGHT = 1100
 # player applied settings
 PLAYER_ACC = 0.7
 PLAYER_FRICTION = -0.03
 PLAYER_JUMP = 20
 PLAYER_GRAV = 0
-PMAX_VEL = 30
+PMAX_VEL = 25
 PROT_SPEED = 10
+P_IMMUNITY = 1200
+PLAYER_RADIUS = 25
 # mob applied settings
 MOB_ACC = 2
 MOB_FRICTION = -0.3
@@ -21,6 +23,7 @@ MOB_CHARGE = ["pos", "neg"]
 MOB_SMALL_IMG_LIST = ["1", "2", "3"]
 MOB_S_X = 53
 MOB_S_Y = 53
+MOB_S_RADIUS = 26.5
 # bullet applied settings
 BMAX_VEL = 50
 B_LEN = 7
@@ -39,10 +42,3 @@ clk = False
 # dimenstions of player image
 player_x_len = 50
 player_y_len = 100
-# Starting platforms
-# PLATFORM_LIST = [[0, HEIGHT - 40, WIDTH, 40, (200,200,200), "normal"],
-#                  [WIDTH / 2 - 50, HEIGHT * 3 / 4, 100, 20, (100,255,100), "bouncey"],
-#                  [125, HEIGHT - 350, 100, 5, (200,100,50), "disappearing"],
-#                  [700, 200, 100, 20, (200,200,200), "normal"],
-#                  [175, 100, 50, 20, (200,200,200), "normal"]]
-# PLATFORM_LIST = []

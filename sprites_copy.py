@@ -37,7 +37,6 @@ class Player(Sprite):
         # p now has p image
         self.image.blit(self.simg, self.simg_rect)
         # self.timage.blit(self.timg, self.timg_rect)
-        
         # p dimensions
         self.rect = self.image.get_rect()
         # where self prolclaimed center is
@@ -58,6 +57,7 @@ class Player(Sprite):
         self.last_update = pg.time.get_ticks()
         self.rot = 0
         self.rot_speed = 0
+        self.birth = pg.time.get_ticks()
     # gets user input that is then applied to p
     def input(self):
         # variable for when a key is pressed
@@ -129,7 +129,6 @@ class Player(Sprite):
                 b = Bullet(direction, position, self.game)
                 self.game.all_sprites.add(b)
                 self.game.bullets.append(b)
-                self.game.enemies.add(b)
         c = keystate[pg.CONTROLLER_AXIS_TRIGGERRIGHT]
         # testing stuff
     def rotate(self):
@@ -164,13 +163,21 @@ class Player(Sprite):
             print("i am off the top of the screen...") 
     # when a player hits a mob...
     def mob_collide(self):
-            # if a player hits a sprite in enemy list
-            hits = pg.sprite.spritecollide(self, self.game.enemies, True)
-            if hits:
-                print("you collided with an enemy...")
-                # self.game.score += 1
-                # print(SCORE)
-    # how player moves every second
+        now = pg.time.get_ticks()
+        if now - self.birth >= P_IMMUNITY:
+            for mob in self.game.enemies:
+                if is_touching(self.pos,PLAYER_RADIUS,mob.pos,MOB_S_RADIUS):
+                    mob.kill()
+                    for player in self.game.players:
+                        player.kill() 
+        else:
+            if self.type == "cont":
+                if self.image.get_alpha() == 255:
+                    self.image.set_alpha(0)
+                    print(1)
+                elif self.image.get_alpha() == 0:
+                    self.image.set_alpha(255)
+                    print(2)
     def update(self):
         # acceleration based on gravity
         self.acc = vec(0, PLAYER_GRAV)
@@ -180,6 +187,7 @@ class Player(Sprite):
         # runs p input every second
         self.input()
         self.inbounds()
+        self.mob_collide()
         # velocity, position and origin
         self.vel += self.acc
         self.pos += self.vel + 0.5 * self.acc
@@ -192,8 +200,9 @@ class Player(Sprite):
 # class for Mobs
 class Mob(Sprite):
     # init the mobs initial settings and attributes
-    def __init__(self, simg, simg_rect):
+    def __init__(self, simg, simg_rect, type):
         Sprite.__init__(self)
+        self.type = type
         simg.set_colorkey(BLACK)
         self.image = pg.Surface((MOB_S_X,MOB_S_Y))
         self.image_orig = pg.transform.scale(simg,(MOB_S_X,MOB_S_Y))
@@ -262,21 +271,6 @@ class Mob(Sprite):
         self.pos += self.vel
         self.rect.center = self.pos
 
-# create a new platform class...
-
-# class Platform(Sprite):
-#     def __init__(self, x, y, width, height, color, variant):
-#         Sprite.__init__(self)
-#         self.width = width
-#         self.height = height
-#         self.image = pg.Surface((self.width,self.height))
-#         self.color = color
-#         self.image.fill(self.color)
-#         self.rect = self.image.get_rect()
-#         self.rect.x = x
-#         self.rect.y = y
-#         self.variant = variant
-
 class Bullet(Sprite):
     def __init__(self,direction,location,game):
         Sprite.__init__(self)
@@ -325,3 +319,14 @@ def unit_cir(angle, max):
     yval = sin(angle)
     yval *= max
     return [xval,yval]
+
+def is_touching(pos1, r1, pos2, r2):
+    x = abs(pos1[0] - pos2[0])
+    y = abs(pos1[1] - pos2[1])
+    x *= x
+    y *= y
+    hyp = sqrt(x+y)
+    if hyp <= r1 + r2:
+        return True
+    else:
+        return False

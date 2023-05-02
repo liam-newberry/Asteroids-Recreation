@@ -48,6 +48,7 @@ class Game:
         # new place to store sprites
         self.all_sprites = pg.sprite.Group()
         self.bullets = []
+        self.players = pg.sprite.Group()
         # new place to store mobs
         self.enemies = pg.sprite.Group()
         # image used on Player
@@ -60,10 +61,14 @@ class Game:
         # defines player with the image
         self.player = Player(self, pimgs, self.screen, "cont")
         self.playert = Player(self, ptimgs, self.screen, "thrust")
+        # self.playerh = Hitbox(self,"player",self.screen)
         # self.plat1 = Platform(WIDTH, 50, 0, HEIGHT-50, (150,150,150), "normal")
         # player added to sprites list
         self.all_sprites.add(self.player)
         self.all_sprites.add(self.playert)
+        self.players.add(self.player)
+        self.players.add(self.playert)
+        # self.all_sprites.add(self.playerh)
         
         # for plat in PLATFORM_LIST:
         #     p = Platform(*plat)
@@ -83,7 +88,7 @@ class Game:
                 s_asteroid = s_asteroid2
             elif rand_s_asteroid == "3":
                 s_asteroid = s_asteroid3
-            m = Mob(s_asteroid,s_asteroid_rect)
+            m = Mob(s_asteroid,s_asteroid_rect,"small_ast")
             self.all_sprites.add(m)
             self.enemies.add(m)
         # starts all the import init functions 
