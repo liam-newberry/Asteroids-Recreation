@@ -11,6 +11,7 @@ from random import uniform
 # computer control
 import os
 from math import *
+from time import sleep
 game_folder = os.path.dirname(__file__)
 # for vel and acc
 vec = pg.math.Vector2
@@ -28,18 +29,15 @@ class Player(Sprite):
         self.simg.set_colorkey(BLACK)
         self.game = game
         self.image_orig = pg.transform.scale(self.simg, (50,100))
-        orig = self.image_orig
         self.type = typ
         # how big p is
         self.image = pg.Surface((50,100))
         self.image.set_colorkey(BLACK)
-        # self.timage.set_alpha(0)
-        # p now has p image
+        # player now has p image
         self.image.blit(self.simg, self.simg_rect)
-        # self.timage.blit(self.timg, self.timg_rect)
         # p dimensions
         self.rect = self.image.get_rect()
-        # where self prolclaimed center is
+        # where self proclaimed center is
         self.rect.center = (WIDTH/2, HEIGHT/2)
         self.rect.center = (0,0)
         # where to spawn player
@@ -53,7 +51,6 @@ class Player(Sprite):
         self.acc = vec(0,0)
         self.cofric = 0.1
         # cannot jump
-        self.canjump = False
         self.last_update = pg.time.get_ticks()
         self.rot = 0
         self.rot_speed = 0
@@ -62,8 +59,7 @@ class Player(Sprite):
     def input(self):
         # variable for when a key is pressed
         keystate = pg.key.get_pressed()
-        # key_up = pg.KEYUP[pg.K_SPACE]
-        # w moves up
+        # thrust
         if keystate[pg.K_w] or keystate[pg.K_UP]:
             x = [90,180,270,360]
             self.angle = self.rot
@@ -88,8 +84,6 @@ class Player(Sprite):
                     self.acc.x = mx_acc
                     self.acc.y = my_acc
         else:
-            # self.image.set_alpha(100)
-            # print(2)
             if self.type == "thrust":
                 self.image.set_alpha(0)
             # pass
@@ -143,7 +137,6 @@ class Player(Sprite):
             self.rect = self.image.get_rect()
             self.rect.center = old_center
             self.image.set_alpha(alpha)
-            
     def inbounds(self):
         # right
         if self.pos.x > WIDTH and self.vel.x > 0:
@@ -168,6 +161,7 @@ class Player(Sprite):
             for mob in self.game.enemies:
                 if is_touching(self.pos,PLAYER_RADIUS,mob.pos,MOB_S_RADIUS):
                     mob.kill()
+                    self.game.p_death_ani()
                     for player in self.game.players:
                         player.kill() 
         else:
@@ -209,9 +203,7 @@ class Mob(Sprite):
         self.image.blit(simg, simg_rect)
         self.width = MOB_S_X
         self.height = MOB_S_Y
-        # self.image = pg.Surface((self.width,self.height))
         self.rect = self.image.get_rect()
-        # self.pos = vec(WIDTH/2, HEIGHT/2)
         # randomized velocity
         vel_choice = choice(MOB_VEL_LIST)
         mob_charge = choice(MOB_CHARGE)
@@ -310,6 +302,59 @@ class Bullet(Sprite):
             self.kill()
         if len(self.game.bullets) >= 2:
             self.game.bullets.pop(0)
+
+class Particles(Sprite):
+    def __init__(self, img_folder, type, game):
+        Sprite.__init__(self)
+        self.type = type
+        self.rot = False
+        self.game = game
+        if self.type == "line":
+            simg = img_folder[0]
+            simg.set_colorkey(BLACK)
+            simg_rect = img_folder[1]
+            self.image_orig = pg.transform.scale(simg,((PARL_WIDTH,PARL_HEIGHT)))
+            self.image = pg.Surface((PARL_WIDTH,PARL_HEIGHT))
+        if self.type == "dot":
+            simg = img_folder[2]
+            simg.set_colorkey(BLACK)
+            simg_rect = img_folder[3]
+            self.image = pg.Surface((PARD_WIDTH,PARD_HEIGHT))
+            self.image_orig = pg.transform.scale(simg,((PARD_WIDTH,PARD_HEIGHT)))
+        self.image.blit(simg, simg_rect)
+        self.rect = self.image.get_rect()
+        p_pos = [game.player.pos[0], game.player.pos[1]]
+        self.pos = (p_pos[0] + randint(-PAR_MAX_DIST,PAR_MAX_DIST),
+                    p_pos[1] + randint(-PAR_MAX_DIST,PAR_MAX_DIST))
+        self.vel = vec(uniform(-PAR_MAX_VEL,PAR_MAX_VEL),uniform(-PAR_MAX_VEL,PAR_MAX_VEL))
+        self.rotate()
+        self.birth = pg.time.get_ticks()
+    def inbounds(self):
+        # right
+        if self.pos.x > WIDTH and self.vel.x > 0:
+            self.pos.x = 0
+        # left
+        if self.pos.x < 0 and self.vel.x < 0:
+            self.pos.x = WIDTH
+        # bottom
+        if self.pos.y > HEIGHT and self.vel.y > 0:
+            self.pos.y = 0
+        # top
+        if self.pos.y < 0 and self.vel.y < 0:
+            self.pos.y = HEIGHT
+    def rotate(self):
+        new_image = pg.transform.rotate(self.image_orig, randint(0,360))
+        old_center = self.rect.center
+        self.image = new_image
+        self.rect = self.image.get_rect()
+        self.rect.center = old_center
+    def update(self):
+        self.pos += self.vel
+        self.rect.center = self.pos
+        self.inbounds()
+        now = pg.time.get_ticks()
+        if now - self.birth > 800:
+            self.kill()
 
 def unit_cir(angle, max):
     angle *= pi

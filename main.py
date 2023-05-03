@@ -1,13 +1,13 @@
 # File created by: Liam Newberry
 '''
 Goals:
-create a player that can rotate
+create a player that can rotate {}
 let the player shoot asteroids (mobs)
 create animations for mobs and players
 add sound effects
 get a high score from shooting asteroids
-player can move through one edge and spawn at the other
-create thrust (and animation)
+player can move through one edge and spawn at the other {}
+create thrust (and animation) {}
 let player bind own settings
 add hostile mobs
 '''
@@ -17,8 +17,6 @@ import os
 # import settings and sprites files
 from settings_copy import *
 from sprites_copy import *
-# import sleep function
-from time import sleep
 
 # set up assets folders
 game_folder = os.path.dirname(__file__)
@@ -52,7 +50,7 @@ class Game:
         # new place to store mobs
         self.enemies = pg.sprite.Group()
         # image used on Player
-        p_image = pg.image.load(os.path.join(img_folder, "p2.png")).convert()
+        p_image = pg.image.load(os.path.join(img_folder, "player.png")).convert()
         p_image_rect = p_image.get_rect()
         pt_image = pg.image.load(os.path.join(img_folder, "thruster.png")).convert()
         pt_image_rect = pt_image.get_rect()
@@ -61,25 +59,15 @@ class Game:
         # defines player with the image
         self.player = Player(self, pimgs, self.screen, "cont")
         self.playert = Player(self, ptimgs, self.screen, "thrust")
-        # self.playerh = Hitbox(self,"player",self.screen)
-        # self.plat1 = Platform(WIDTH, 50, 0, HEIGHT-50, (150,150,150), "normal")
         # player added to sprites list
         self.all_sprites.add(self.player)
         self.all_sprites.add(self.playert)
         self.players.add(self.player)
         self.players.add(self.playert)
-        # self.all_sprites.add(self.playerh)
-        
-        # for plat in PLATFORM_LIST:
-        #     p = Platform(*plat)
-        #     self.all_sprites.add(p)
-        #     self.platforms.add(p)
-        # adds mobs to the screen
         s_asteroid1 = pg.image.load(os.path.join(img_folder, "s_asteroid1.png")).convert()
         s_asteroid2 = pg.image.load(os.path.join(img_folder, "s_asteroid2.png")).convert()
         s_asteroid3 = pg.image.load(os.path.join(img_folder, "s_asteroid3.png")).convert()
         s_asteroid_rect = s_asteroid1.get_rect()
-        mimgs = [s_asteroid1,s_asteroid2,s_asteroid3,s_asteroid_rect]
         for i in range(0,10):
             rand_s_asteroid = choice(MOB_SMALL_IMG_LIST)
             if rand_s_asteroid == "1":
@@ -93,12 +81,6 @@ class Game:
             self.enemies.add(m)
         # starts all the import init functions 
         self.run()
-    # def input(self):
-        
-    #     # if keystate[pg.K_0]:
-    #     #     print(1)
-    #     #     self.all_sprites.add(self.bullet1)
-    #     pass
     def run(self):
         self.playing = True
         while self.playing:
@@ -114,8 +96,18 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
-            # if not keystate[pg.K_w]:
-            
+    def p_death_ani(self):
+        line_image = pg.image.load(os.path.join(img_folder, "line.png")).convert()
+        line_image_rect = line_image.get_rect()
+        dot_image = pg.image.load(os.path.join(img_folder, "dot.png")).convert()
+        dot_image_rect = dot_image.get_rect()
+        imgs = [line_image,line_image_rect,dot_image,dot_image_rect]
+        for i in range(0,3):
+            l = Particles(imgs,"line",self)
+            self.all_sprites.add(l)
+        for i in range(0,5):
+            d = Particles(imgs,"dot",self)
+            self.all_sprites.add(d)
     # updates positions, events, and keeps tabs and updates everything
     def update(self):
         # updates the sprites

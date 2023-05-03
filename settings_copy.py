@@ -13,6 +13,7 @@ PLAYER_GRAV = 0
 PMAX_VEL = 25
 PROT_SPEED = 10
 P_IMMUNITY = 1200
+P_IMMUNITY = 1200
 PLAYER_RADIUS = 25
 # mob applied settings
 MOB_ACC = 2
@@ -25,8 +26,15 @@ MOB_S_X = 53
 MOB_S_Y = 53
 MOB_S_RADIUS = 26.5
 # bullet applied settings
-BMAX_VEL = 50
+BMAX_VEL = 35
 B_LEN = 7
+# particle applied settings
+PARL_WIDTH = 4
+PARL_HEIGHT = 70
+PARD_WIDTH = 7
+PARD_HEIGHT = 7
+PAR_MAX_VEL = 3
+PAR_MAX_DIST = 20
 # colors
 BLACK = (0,0,0)
 WHITE = (255,255,255)
