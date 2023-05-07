@@ -15,12 +15,18 @@ add invaders
 import pygame as pg
 import os
 # import settings and sprites files
-from settings import *
-from sprites import *
+from settings_copy import *
+from sprites_copy import *
 
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
+sound_folder = os.path.join(game_folder, "sounds")
+s_ast = os.path.join(img_folder, "s_ast")
+m_ast = os.path.join(img_folder, "m_ast")
+l_ast = os.path.join(img_folder, "l_ast")
+particle_img = os.path.join(img_folder, "particles")
+player_imgs = os.path.join(img_folder, "player")
 
 # create game class in order to pass properties to the sprites file
 class Game:
@@ -41,6 +47,9 @@ class Game:
         self.keystate = pg.key.get_pressed()
         self.life_count = 3
         self.death = False
+        self.time_of_death = pg.time.get_ticks()
+        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
+        self.player_life_rect = self.player_life_img.get_rect()
     # sets up in game settings
     def new(self):
         # starting a new game
@@ -48,36 +57,85 @@ class Game:
         # new place to store sprites
         self.all_sprites = pg.sprite.Group()
         self.pbullets = []
+        self.pbullet_group = pg.sprite.Group()
         self.pbullets_active = []
         self.players = pg.sprite.Group()
         self.invaders = pg.sprite.Group()
-        self.sasteroids = pg.sprite.Group()
-        self.masteroids = pg.sprite.Group()
-        self.lasteroids = pg.sprite.Group()
+        self.asteroids = []
+        self.near_death = []
+        self.asteroids_copy = []
+        self.mob_serial = 0
+        self.last_sprite = -1000
+        self.music_buffer = 1000
+        self.last_played = 0
+        self.beat1 = pg.mixer.Sound(os.path.join(sound_folder, "beat1.wav"))
+        self.beat2 = pg.mixer.Sound(os.path.join(sound_folder, "beat2.wav"))
+        self.beat = self.beat1
         # image used on Player
         # defines player with the image 
-        s_asteroid1 = pg.image.load(os.path.join(img_folder, "s_asteroid1.png")).convert()
-        s_asteroid2 = pg.image.load(os.path.join(img_folder, "s_asteroid2.png")).convert()
-        s_asteroid3 = pg.image.load(os.path.join(img_folder, "s_asteroid3.png")).convert()
-        s_asteroid_rect = s_asteroid1.get_rect()
-        for i in range(0,10):
-            rand_s_asteroid = choice(MOB_SMALL_IMG_LIST)
-            if rand_s_asteroid == "1":
-                s_asteroid = s_asteroid1
-            elif rand_s_asteroid == "2":
-                s_asteroid = s_asteroid2
-            elif rand_s_asteroid == "3":
-                s_asteroid = s_asteroid3
-            sa = Small_Ast(s_asteroid,s_asteroid_rect,"small_ast", self)
-            self.all_sprites.add(sa)
-            self.sasteroids.add(sa)
         self.new_player()
-        # starts all the import init functions 
+        self.large_ast_spawn(1)
+        self.medium_ast_spawn(2)
+        self.small_ast_spawn(4)
         self.run()
+    def small_ast_spawn(self, number):
+        s_asteroid1 = pg.image.load(os.path.join(s_ast, "s_asteroid1.png")).convert()
+        s_asteroid2 = pg.image.load(os.path.join(s_ast, "s_asteroid2.png")).convert()
+        s_asteroid3 = pg.image.load(os.path.join(s_ast, "s_asteroid3.png")).convert()
+        s_asteroid4 = pg.image.load(os.path.join(s_ast, "s_asteroid4.png")).convert()
+        s_asteroid_rect = s_asteroid1.get_rect()
+        for i in range(0,number):
+            rand_s_asteroid = randint(1,4)
+            if rand_s_asteroid == 1:
+                s_asteroid = s_asteroid1
+            elif rand_s_asteroid == 2:
+                s_asteroid = s_asteroid2
+            elif rand_s_asteroid == 3:
+                s_asteroid = s_asteroid3
+            elif rand_s_asteroid == 4:
+                s_asteroid = s_asteroid4
+            sa = Ast(s_asteroid,s_asteroid_rect,"small_ast", self)
+            self.all_sprites.add(sa)
+    def medium_ast_spawn(self, number):
+        m_asteroid1 = pg.image.load(os.path.join(m_ast, "m_asteroid1.png")).convert()
+        m_asteroid2 = pg.image.load(os.path.join(m_ast, "m_asteroid2.png")).convert()
+        m_asteroid3 = pg.image.load(os.path.join(m_ast, "m_asteroid3.png")).convert()
+        m_asteroid4 = pg.image.load(os.path.join(m_ast, "m_asteroid4.png")).convert()
+        m_asteroid_rect = m_asteroid1.get_rect()
+        for i in range(0,number):
+            rand_m_asteroid = randint(1,4)
+            if rand_m_asteroid == 1:
+                m_asteroid = m_asteroid1
+            elif rand_m_asteroid == 2:
+                m_asteroid = m_asteroid2
+            elif rand_m_asteroid == 3:
+                m_asteroid = m_asteroid3
+            elif rand_m_asteroid == 4:
+                m_asteroid = m_asteroid4
+            ma = Ast(m_asteroid,m_asteroid_rect,"medium_ast", self)
+            self.all_sprites.add(ma)
+    def large_ast_spawn(self, number):
+        l_asteroid1 = pg.image.load(os.path.join(l_ast, "l_asteroid1.png")).convert()
+        l_asteroid2 = pg.image.load(os.path.join(l_ast, "l_asteroid2.png")).convert()
+        l_asteroid3 = pg.image.load(os.path.join(l_ast, "l_asteroid3.png")).convert()
+        l_asteroid4 = pg.image.load(os.path.join(l_ast, "l_asteroid4.png")).convert()
+        l_asteroid_rect = l_asteroid1.get_rect()
+        for i in range(0,number):
+            rand_l_asteroid = randint(1,4)
+            if rand_l_asteroid == 1:
+                l_asteroid = l_asteroid1
+            elif rand_l_asteroid == 2:
+                l_asteroid = l_asteroid2
+            elif rand_l_asteroid == 3:
+                l_asteroid = l_asteroid3
+            elif rand_l_asteroid == 4:
+                l_asteroid = l_asteroid4
+            la = Ast(l_asteroid,l_asteroid_rect,"large_ast", self)
+            self.all_sprites.add(la)
     def new_player(self):
-        p_image = pg.image.load(os.path.join(img_folder, "player.png")).convert()
+        p_image = pg.image.load(os.path.join(player_imgs, "player.png")).convert()
         p_image_rect = p_image.get_rect()
-        pt_image = pg.image.load(os.path.join(img_folder, "thruster.png")).convert()
+        pt_image = pg.image.load(os.path.join(player_imgs, "thruster.png")).convert()
         pimgs = [p_image, p_image_rect]
         ptimgs = [pt_image, p_image_rect]
         player = Player(self, pimgs, self.screen, "cont")
@@ -89,7 +147,7 @@ class Game:
         self.players.add(self.player)
         self.players.add(self.playert)
         self.death = False
-        self.player_life_img = pg.image.load(os.path.join(img_folder, "player_lives.png"))
+        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
         self.player_life_rect = self.player_life_img.get_rect()
         self.player_life_rect.x = 20
         self.player_life_rect.y = 50
@@ -109,29 +167,55 @@ class Game:
                     self.playing = False
                 self.running = False
     def p_death_ani(self):
-        self.life_count-=1
-        line_image = pg.image.load(os.path.join(img_folder, "line.png")).convert()
+        self.life_count -= 1
+        line_image = pg.image.load(os.path.join(particle_img, "line.png")).convert()
         line_image_rect = line_image.get_rect()
-        dot_image = pg.image.load(os.path.join(img_folder, "dot.png")).convert()
-        dot_image_rect = dot_image.get_rect()
-        imgs = [line_image,line_image_rect,dot_image,dot_image_rect]
+        imgs = [line_image,line_image_rect,None,None]
         for i in range(0,3):
-            l = Particles(imgs,"line",self)
+            l = Particles(imgs,"line",self,"player")
             self.all_sprites.add(l)
-        for i in range(0,5):
-            d = Particles(imgs,"dot",self)
-            self.all_sprites.add(d)
         self.time_of_death = pg.time.get_ticks()
+    def ast_ani(self,number,size):
+        dot_image = pg.image.load(os.path.join(particle_img, "dot.png")).convert()
+        dot_image_rect = dot_image.get_rect()
+        imgs = [None,None,dot_image,dot_image_rect]
+        for i in range(0,number):
+            d = Particles(imgs,"dot",self,"mob",size)
+            self.all_sprites.add(d)
+    def is_new_player(self):
+        if self.life_count != 0 and len(self.players) == 0:
+            if self.now - self.time_of_death >= 1400:
+                self.new_player()
+    def update_ast_list(self):
+        for i in self.asteroids:
+            if not i[3]:
+                ind = self.asteroids.index(i)
+                self.asteroids.pop(ind)
+    def update_bullet_list(self):
+        for bullet in self.pbullets_active:
+            if self.now - bullet.birth > B_LIFETIME:
+                self.pbullets_active.remove(bullet)
+                break
+    def main_music(self):
+        if self.now - self.last_played >= self.music_buffer:
+            self.beat.set_volume(MAIN_MUSIC_VOLUME)
+            pg.mixer.Sound.play(self.beat)
+            if self.beat == self.beat1:
+                self.beat = self.beat2
+            elif self.beat == self.beat2:
+                self.beat = self.beat1
+                if self.music_buffer > MAIN_MIN_MUSIC_BUFFER:
+                    self.music_buffer -= MAIN_MUSIC_INTERVAL
+            self.last_played = pg.time.get_ticks()
     # updates positions, events, and keeps tabs and updates everything
     def update(self):
         # updates the sprites
         self.all_sprites.update()
-        now = pg.time.get_ticks()
-        if self.life_count != 0 and len(self.players) == 0:
-            if now - self.time_of_death >= 1400:
-                self.new_player()
-        if len(self.pbullets_active) > 4:
-            self.pbullets_active.pop(0)
+        self.now = pg.time.get_ticks()
+        self.is_new_player()
+        self.update_bullet_list()
+        self.update_ast_list()
+        self.main_music()
     def draw(self):
         #make background black
         self.screen.fill(BLACK)
