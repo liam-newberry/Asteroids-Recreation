@@ -17,7 +17,6 @@ import os
 # import settings and sprites files
 from settings_copy import *
 from sprites_copy import *
-
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
@@ -68,86 +67,102 @@ class Game:
         self.last_sprite = -1000
         self.music_buffer = 1000
         self.last_played = 0
-        self.beat1 = pg.mixer.Sound(os.path.join(sound_folder, "beat1.wav"))
-        self.beat2 = pg.mixer.Sound(os.path.join(sound_folder, "beat2.wav"))
-        self.beat = self.beat1
+        self.sound = True
+        self.math_vis = True
+        if self.sound:
+            self.beat1 = pg.mixer.Sound(os.path.join(sound_folder, "beat1.wav"))
+            self.beat2 = pg.mixer.Sound(os.path.join(sound_folder, "beat2.wav"))
+            self.beat = self.beat1
+        self.s_asteroid1 = pg.image.load(os.path.join(s_ast, "s_asteroid1.png")).convert()
+        self.s_asteroid2 = pg.image.load(os.path.join(s_ast, "s_asteroid2.png")).convert()
+        self.s_asteroid3 = pg.image.load(os.path.join(s_ast, "s_asteroid3.png")).convert()
+        self.s_asteroid4 = pg.image.load(os.path.join(s_ast, "s_asteroid4.png")).convert()
+        self.m_asteroid1 = pg.image.load(os.path.join(m_ast, "m_asteroid1.png")).convert()
+        self.m_asteroid2 = pg.image.load(os.path.join(m_ast, "m_asteroid2.png")).convert()
+        self.m_asteroid3 = pg.image.load(os.path.join(m_ast, "m_asteroid3.png")).convert()
+        self.m_asteroid4 = pg.image.load(os.path.join(m_ast, "m_asteroid4.png")).convert()
+        self.l_asteroid1 = pg.image.load(os.path.join(l_ast, "l_asteroid1.png")).convert()
+        self.l_asteroid2 = pg.image.load(os.path.join(l_ast, "l_asteroid2.png")).convert()
+        self.l_asteroid3 = pg.image.load(os.path.join(l_ast, "l_asteroid3.png")).convert()
+        self.l_asteroid4 = pg.image.load(os.path.join(l_ast, "l_asteroid4.png")).convert()
+        self.line_image = pg.image.load(os.path.join(particle_img, "line.png")).convert()
+        self.dot_image = pg.image.load(os.path.join(particle_img, "dot.png")).convert()
+        self.p_image = pg.image.load(os.path.join(player_imgs, "player.png")).convert()
+        self.pt_image = pg.image.load(os.path.join(player_imgs, "thruster.png")).convert()
+        self.puc_image = pg.image.load(os.path.join(player_imgs, "unit_circle.png")).convert()
+        self.pd_image = pg.image.load(os.path.join(player_imgs, "direction.png")).convert()
+        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
         # image used on Player
         # defines player with the image 
         self.new_player()
-        self.large_ast_spawn(1)
-        self.medium_ast_spawn(2)
-        self.small_ast_spawn(4)
+        self.large_ast_spawn(4)
         self.run()
-    def small_ast_spawn(self, number):
-        s_asteroid1 = pg.image.load(os.path.join(s_ast, "s_asteroid1.png")).convert()
-        s_asteroid2 = pg.image.load(os.path.join(s_ast, "s_asteroid2.png")).convert()
-        s_asteroid3 = pg.image.load(os.path.join(s_ast, "s_asteroid3.png")).convert()
-        s_asteroid4 = pg.image.load(os.path.join(s_ast, "s_asteroid4.png")).convert()
-        s_asteroid_rect = s_asteroid1.get_rect()
+    def small_ast_spawn(self, number, broken=False, pos=None):
+        s_asteroid_rect = self.s_asteroid1.get_rect()
         for i in range(0,number):
             rand_s_asteroid = randint(1,4)
             if rand_s_asteroid == 1:
-                s_asteroid = s_asteroid1
+                s_asteroid = self.s_asteroid1
             elif rand_s_asteroid == 2:
-                s_asteroid = s_asteroid2
+                s_asteroid = self.s_asteroid2
             elif rand_s_asteroid == 3:
-                s_asteroid = s_asteroid3
+                s_asteroid = self.s_asteroid3
             elif rand_s_asteroid == 4:
-                s_asteroid = s_asteroid4
-            sa = Ast(s_asteroid,s_asteroid_rect,"small_ast", self)
+                s_asteroid = self.s_asteroid4
+            sa = Ast(s_asteroid,s_asteroid_rect,"small_ast", self, broken, pos)
             self.all_sprites.add(sa)
-    def medium_ast_spawn(self, number):
-        m_asteroid1 = pg.image.load(os.path.join(m_ast, "m_asteroid1.png")).convert()
-        m_asteroid2 = pg.image.load(os.path.join(m_ast, "m_asteroid2.png")).convert()
-        m_asteroid3 = pg.image.load(os.path.join(m_ast, "m_asteroid3.png")).convert()
-        m_asteroid4 = pg.image.load(os.path.join(m_ast, "m_asteroid4.png")).convert()
-        m_asteroid_rect = m_asteroid1.get_rect()
+    def medium_ast_spawn(self, number, broken=False, pos=None):
+        m_asteroid_rect = self.m_asteroid1.get_rect()
         for i in range(0,number):
             rand_m_asteroid = randint(1,4)
             if rand_m_asteroid == 1:
-                m_asteroid = m_asteroid1
+                m_asteroid = self.m_asteroid1
             elif rand_m_asteroid == 2:
-                m_asteroid = m_asteroid2
+                m_asteroid = self.m_asteroid2
             elif rand_m_asteroid == 3:
-                m_asteroid = m_asteroid3
+                m_asteroid = self.m_asteroid3
             elif rand_m_asteroid == 4:
-                m_asteroid = m_asteroid4
-            ma = Ast(m_asteroid,m_asteroid_rect,"medium_ast", self)
+                m_asteroid = self.m_asteroid4
+            ma = Ast(m_asteroid,m_asteroid_rect,"medium_ast", self, broken, pos)
             self.all_sprites.add(ma)
     def large_ast_spawn(self, number):
-        l_asteroid1 = pg.image.load(os.path.join(l_ast, "l_asteroid1.png")).convert()
-        l_asteroid2 = pg.image.load(os.path.join(l_ast, "l_asteroid2.png")).convert()
-        l_asteroid3 = pg.image.load(os.path.join(l_ast, "l_asteroid3.png")).convert()
-        l_asteroid4 = pg.image.load(os.path.join(l_ast, "l_asteroid4.png")).convert()
-        l_asteroid_rect = l_asteroid1.get_rect()
+        l_asteroid_rect = self.l_asteroid1.get_rect()
         for i in range(0,number):
             rand_l_asteroid = randint(1,4)
             if rand_l_asteroid == 1:
-                l_asteroid = l_asteroid1
+                l_asteroid = self.l_asteroid1
             elif rand_l_asteroid == 2:
-                l_asteroid = l_asteroid2
+                l_asteroid =self. l_asteroid2
             elif rand_l_asteroid == 3:
-                l_asteroid = l_asteroid3
+                l_asteroid = self.l_asteroid3
             elif rand_l_asteroid == 4:
-                l_asteroid = l_asteroid4
+                l_asteroid = self.l_asteroid4
             la = Ast(l_asteroid,l_asteroid_rect,"large_ast", self)
             self.all_sprites.add(la)
     def new_player(self):
-        p_image = pg.image.load(os.path.join(player_imgs, "player.png")).convert()
-        p_image_rect = p_image.get_rect()
-        pt_image = pg.image.load(os.path.join(player_imgs, "thruster.png")).convert()
-        pimgs = [p_image, p_image_rect]
-        ptimgs = [pt_image, p_image_rect]
+        p_image_rect = self.p_image.get_rect()
+        puc_image_rect = self.puc_image.get_rect()
+        pimgs = [self.p_image, p_image_rect]
+        ptimgs = [self.pt_image, p_image_rect]
+        pucimgs = [self.puc_image, puc_image_rect]
+        pdimgs = [self.pd_image, p_image_rect]
         player = Player(self, pimgs, self.screen, "cont")
         playert = Player(self, ptimgs, self.screen, "thrust")
+        playeruc = Player(self, pucimgs, self.screen, "unit circle")
+        playerd = Player(self, pdimgs, self.screen, "direction")
         self.player = player
         self.playert = playert
+        self.playeruc = playeruc
+        self.playerd = playerd
+        self.all_sprites.add(self.playeruc)
         self.all_sprites.add(self.player)
         self.all_sprites.add(self.playert)
+        self.all_sprites.add(self.playerd)
+        self.players.add(self.playeruc)
         self.players.add(self.player)
         self.players.add(self.playert)
+        self.players.add(self.playerd)
         self.death = False
-        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
         self.player_life_rect = self.player_life_img.get_rect()
         self.player_life_rect.x = 20
         self.player_life_rect.y = 50
@@ -168,17 +183,15 @@ class Game:
                 self.running = False
     def p_death_ani(self):
         self.life_count -= 1
-        line_image = pg.image.load(os.path.join(particle_img, "line.png")).convert()
-        line_image_rect = line_image.get_rect()
-        imgs = [line_image,line_image_rect,None,None]
+        line_image_rect = self.line_image.get_rect()
+        imgs = [self.line_image,line_image_rect,None,None]
         for i in range(0,3):
             l = Particles(imgs,"line",self,"player")
             self.all_sprites.add(l)
         self.time_of_death = pg.time.get_ticks()
     def ast_ani(self,number,size):
-        dot_image = pg.image.load(os.path.join(particle_img, "dot.png")).convert()
-        dot_image_rect = dot_image.get_rect()
-        imgs = [None,None,dot_image,dot_image_rect]
+        dot_image_rect = self.dot_image.get_rect()
+        imgs = [None,None,self.dot_image,dot_image_rect]
         for i in range(0,number):
             d = Particles(imgs,"dot",self,"mob",size)
             self.all_sprites.add(d)
@@ -207,20 +220,40 @@ class Game:
                 if self.music_buffer > MAIN_MIN_MUSIC_BUFFER:
                     self.music_buffer -= MAIN_MUSIC_INTERVAL
             self.last_played = pg.time.get_ticks()
-    # updates positions, events, and keeps tabs and updates everything
-    def update(self):
-        # updates the sprites
-        self.all_sprites.update()
-        self.now = pg.time.get_ticks()
-        self.is_new_player()
-        self.update_bullet_list()
-        self.update_ast_list()
-        self.main_music()
-    def draw(self):
-        #make background black
-        self.screen.fill(BLACK)
-        # blit all the sprites
-        self.all_sprites.draw(self.screen)
+    def draw_math(self):
+        angle = self.player.rot
+        angle += 90
+        vels = unit_cir(angle, PMAX_VEL)
+        xvel = vels[0]
+        if abs(xvel) < 0.001:
+            xvel = 0
+        xvel = float(xvel)
+        xvel = str(xvel)
+        if len(xvel) < 5:
+            xvel += "000"
+        xvel = xvel[:5]
+        yvel = vels[1]
+        if abs(yvel) < 0.001:
+            yvel = 0
+        yvel = float(yvel)
+        yvel = str(yvel)
+        if len(yvel) < 5:
+            yvel += "000"
+        yvel = yvel[:5]
+        if angle > 360:
+            angle -= 360
+        if len(str(angle)) < 5:
+            angle = float(angle)
+            angle = str(angle) + "000"
+        angle = str(angle)
+        angle = angle[:5]
+        self.draw_text(("angle = " + angle), "Hyperspace",
+                        20, BLUE, WIDTH - 10, 10, "topright", True, False)
+        self.draw_text(("cos(" + angle + ") x " + str(PMAX_VEL) + " = " + xvel), "Hyperspace",
+                        20, RED, WIDTH - 310, 30, "topleft", True, False)
+        self.draw_text(("sin(" + angle + ") x " + str(PMAX_VEL) + " = " + yvel), "Hyperspace",
+                        20, GREEN, WIDTH - 310, 50, "topleft", True, False)
+    def draw_life_count(self):
         life_img1 = self.player_life_img
         life_img1.set_colorkey(BLACK)
         life_rect1 = self.player_life_rect
@@ -242,6 +275,24 @@ class Game:
             life_rect1.x = 10 
             life_rect1.y = 80
             self.screen.blit(life_img1,life_rect3)
+    # updates positions, events, and keeps tabs and updates everything
+    def update(self):
+        # updates the sprites
+        self.now = pg.time.get_ticks()
+        self.all_sprites.update()
+        self.is_new_player()
+        self.update_bullet_list()
+        self.update_ast_list()
+        if self.sound:
+            self.main_music()
+    def draw(self):
+        #make background black
+        self.screen.fill(BLACK)
+        # blit all the sprites
+        self.all_sprites.draw(self.screen)
+        self.draw_life_count()
+        if self.math_vis:
+            self.draw_math()
         # is this a method or a function? -- function
         # only refreshes the window
         self.draw_text(str(self.score), "Hyperspace", 60, WHITE, 20,5,"topleft",True,False)

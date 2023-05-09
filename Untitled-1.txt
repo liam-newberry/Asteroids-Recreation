@@ -1,6 +1,4 @@
-add unit circle and pythagorean theorum option for math viewing
-add sound effects
 add waves
-add breaking into smaller asts
 add start menu
+add accuracy stats/general stats
 http://www.classicgaming.cc/classics/asteroids/sounds

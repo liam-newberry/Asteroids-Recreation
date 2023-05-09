@@ -43,14 +43,4 @@ while running:
     all_sprites.draw(screen)
     pg.display.flip()
 
-
-
-
-
-
-
-
-
-
-
 pg.quit()
