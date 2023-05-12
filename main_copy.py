@@ -17,6 +17,7 @@ import os
 # import settings and sprites files
 from settings_copy import *
 from sprites_copy import *
+from math_funcs import *
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
@@ -26,6 +27,8 @@ m_ast = os.path.join(img_folder, "m_ast")
 l_ast = os.path.join(img_folder, "l_ast")
 particle_img = os.path.join(img_folder, "particles")
 player_imgs = os.path.join(img_folder, "player")
+icon = pg.image.load(os.path.join(player_imgs, "icon.png"))
+icon.set_colorkey(GREEN)
 
 # create game class in order to pass properties to the sprites file
 class Game:
@@ -39,6 +42,7 @@ class Game:
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         # names the window
         pg.display.set_caption("Asteroids")
+        pg.display.set_icon(icon)
         # stores the clock class
         self.clock = pg.time.Clock()
         # used for while loop
@@ -67,8 +71,8 @@ class Game:
         self.last_sprite = -1000
         self.music_buffer = 1000
         self.last_played = 0
-        self.sound = True
-        self.math_vis = True
+        self.sound = False
+        self.math_vis = False
         if self.sound:
             self.beat1 = pg.mixer.Sound(os.path.join(sound_folder, "beat1.wav"))
             self.beat2 = pg.mixer.Sound(os.path.join(sound_folder, "beat2.wav"))
@@ -95,7 +99,7 @@ class Game:
         # image used on Player
         # defines player with the image 
         self.new_player()
-        self.large_ast_spawn(4)
+        # self.large_ast_spawn(4)
         self.run()
     def small_ast_spawn(self, number, broken=False, pos=None):
         s_asteroid_rect = self.s_asteroid1.get_rect()
@@ -170,6 +174,7 @@ class Game:
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
+            print(self.clock.get_fps())
             self.events()
             self.update()
             self.draw()

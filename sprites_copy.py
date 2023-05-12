@@ -4,6 +4,7 @@ import pygame as pg
 from pygame.sprite import Sprite
 # settings file
 from settings_copy import *
+from math_funcs import *
 # randint function
 from random import randint
 from random import choice
@@ -67,6 +68,8 @@ class Player(Sprite):
         self.last_sound = -100
         self.music_load = False
         self.fire_load = False
+        self.last_pressed = 1500
+        self.hyper_acc = False
         if typ == "cont" and self.game.sound:
             self.bangSmall = pg.mixer.Sound(os.path.join(sound_folder, "bangSmall.wav"))
             self.bangMedium = pg.mixer.Sound(os.path.join(sound_folder, "bangMedium.wav"))
@@ -93,6 +96,7 @@ class Player(Sprite):
             vels = unit_cir(self.angle, PMAX_VEL)
             xvel = vels[0]
             yvel = vels[1]
+            print(vels)
             if True:
                 if self.type == "thrust":
                     if self.thrust_interval < 2:
@@ -109,12 +113,16 @@ class Player(Sprite):
                     mx_acc *= PLAYER_ACC
                     mx_acc *= 1
                     self.acc.x = mx_acc
+            # else:
+            #     self.acc.x = 0
             if abs(self.vel.y) <= abs(yvel):
                 if abs(self.vel.y) <= PMAX_VEL:
                     my_acc = yvel/PMAX_VEL
                     my_acc *= PLAYER_ACC
                     my_acc *= -1
                     self.acc.y = my_acc
+            # else:
+            #     self.acc.y = 0
         else:
             if self.type == "thrust":
                 self.image.set_alpha(0)
@@ -142,6 +150,15 @@ class Player(Sprite):
         if keystate[pg.K_RIGHT] or keystate[pg.K_d]:
             self.rot_speed = -PROT_SPEED
             self.rotate()
+        if keystate[pg.K_e]:
+            if self.game.now - self.last_pressed >= 1500:
+                self.vel = vec(0,0)
+                if self.type == "cont":
+                    self.pos = vec(randint(0,WIDTH), randint(0,HEIGHT))
+                else:
+                    self.pos = self.game.player.pos
+                self.last_pressed = self.game.now
+                self.hyper_acc = True
         if keystate[pg.K_SPACE]:
             if self.type == "cont":
                 if len(self.game.pbullets) == 0 or self.game.now - self.game.pbullets[0].birth > 200:
@@ -239,7 +256,6 @@ class Player(Sprite):
                                         pg.mixer.Sound.play(crash_sound)
                                     self.temp = True
                                     break
-                        temp = True
                         for player in self.game.players:
                             if self.game.sound:
                                 if pg.mixer.music.get_busy():
@@ -269,9 +285,15 @@ class Player(Sprite):
     def update(self):
         # acceleration based on gravity
         # maximum velocities
+        # if not self.hyper_acc:
         self.acc.x = self.vel.x * PLAYER_FRICTION
         self.acc.y = self.vel.y * PLAYER_FRICTION
+        # else:
+        #     self.acc.x = self.vel.x * 0
+        #     self.acc.y = self.vel.y * 0
+        #     self.hyper_acc = False
         # runs p input every second
+        # print("vel: "+ str(self.vel))
         self.input()
         self.inbounds()
         self.mob_collide()
@@ -290,10 +312,17 @@ class Player(Sprite):
             self.acc_interval = True
         self.pos += self.vel + 0.5 * self.acc
         self.rect.center = self.pos
+        print(self.vel, self.acc)
         if abs(self.vel.x) < 0.1:
             self.vel.x = 0
         if abs(self.vel.y) < 0.1:
             self.vel.y = 0
+        # if self.type != "cont":
+        #     if self.pos != self.game.player.pos:
+        #         self.pos = self.game.player.pos
+        #     if self.type == "thrust" or "direction":
+        #         if self.rot != self.game.player.rot:
+        #             self.rot = self.game.player.rot
 # class for Mobs
 class Ast(Sprite):
     # init the mobs initial settings and attributes
@@ -443,6 +472,16 @@ class Ast(Sprite):
         self.game.asteroids.pop(self.i)
         self.game.asteroids.insert(self.i, self.data)
 
+class Invader(Sprite):
+    def __ini__(self, game, type, simg):
+        Sprite.__init__(self)
+        self.game = game
+        self.type = type
+        if type == "large":
+            pass
+        elif type == "small":
+            pass
+
 class Bullet(Sprite):
     def __init__(self,direction,location,game):
         Sprite.__init__(self)
@@ -551,23 +590,3 @@ class Particles(Sprite):
         self.inbounds()
         if self.game.now - self.birth > randint(650,1300):
             self.kill()
-
-def unit_cir(angle, max):
-    angle *= pi
-    angle /= 180
-    xval = cos(angle)
-    xval *= max
-    yval = sin(angle)
-    yval *= max
-    return [xval,yval]
-
-def is_touching(pos1, r1, pos2, r2):
-    x = abs(pos1[0] - pos2[0])
-    y = abs(pos1[1] - pos2[1])
-    x *= x
-    y *= y
-    hyp = sqrt(x+y)
-    if hyp <= r1 + r2:
-        return True
-    else:
-        return False
