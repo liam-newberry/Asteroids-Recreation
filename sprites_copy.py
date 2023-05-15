@@ -155,8 +155,7 @@ class Player(Sprite):
                 self.vel = vec(0,0)
                 if self.type == "cont":
                     self.pos = vec(randint(0,WIDTH), randint(0,HEIGHT))
-                else:
-                    self.pos = self.game.player.pos
+                self.pos = self.game.player.pos
                 self.last_pressed = self.game.now
                 self.hyper_acc = True
         if keystate[pg.K_SPACE]:
@@ -268,6 +267,8 @@ class Player(Sprite):
                         self.image.set_alpha(0)
                     elif self.image.get_alpha() == 0:
                         self.image.set_alpha(255)
+    def invader_collide(self):
+        pass
     def spawn_ast(self):
         if self.mtype == "large_ast":
             self.game.medium_ast_spawn(2,True,self.i_pos)
@@ -328,6 +329,7 @@ class Ast(Sprite):
     # init the mobs initial settings and attributes
     def __init__(self, simg, simg_rect, type, game, broken=False, new_pos=None):
         Sprite.__init__(self)
+        # print([simg, simg_rect])
         self.game = game
         self.type = type
         simg.set_colorkey(BLACK)
@@ -453,6 +455,8 @@ class Ast(Sprite):
                     pg.mixer.Sound.play(self.crash_sound)
                 self.spawn_ast()
                 self.kill()
+    def invader_collide(self):
+        pass
     def spawn_ast(self):
         if self.type == "large_ast":
             self.game.medium_ast_spawn(2,True,self.pos)
@@ -473,14 +477,60 @@ class Ast(Sprite):
         self.game.asteroids.insert(self.i, self.data)
 
 class Invader(Sprite):
-    def __ini__(self, game, type, simg):
+    def __init__(self, type, simg, game):
         Sprite.__init__(self)
         self.game = game
         self.type = type
+        print(simg)
+        pos_choice = choice(("left", "right"))
         if type == "large":
-            pass
+            self.vel = vec(INVADER_L_MAX_VEL, 0)
+            self.image = pg.Surface((120,75))
+            self.image.blit(simg[0], simg[1])
+            self.radius = INVADER_L_RADIUS
+            if self.game.sound:
+                self.i_sound = pg.mixer.Sound(os.path.join(sound_folder, "saucerBig.wav"))
         elif type == "small":
-            pass
+            self.vel = vec(INVADER_S_MAX_VEL, 0)
+            self.image = pg.Surface((0,0))
+            self.image.blit(simg[0], simg[1])
+            self.radius = INVADER_S_RADIUS
+            if self.game.sound:
+                self.i_sound = pg.mixer.Sound(os.path.join(sound_folder, "saucerSmall.wav"))
+        if pos_choice == "left":
+            pos_choice = 0
+        elif pos_choice == "right":
+            pos_choice = WIDTH
+            self.vel.x *= -1
+        self.pos = vec(pos_choice, randint(10,HEIGHT-10))
+        self.last_fire = 200
+    def inbounds(self):
+        # right
+        if self.pos.x > WIDTH and self.vel.x > 0:
+            self.pos.x = 0
+        # left
+        if self.pos.x < 0 and self.vel.x < 0:
+            self.pos.x = WIDTH
+        # bottom
+        if self.pos.y > HEIGHT and self.vel.y > 0:
+            self.pos.y = 0
+        # top
+        if self.pos.y < 0 and self.vel.y < 0:
+            self.pos.y = HEIGHT
+    def bullet_collide(self):
+        pass
+    def shoot(self):
+        pass
+    def sound(self):
+        if pg.mixer.Sound.get_num_channels(self.i_sound) == 0:
+            pg.mixer.Sound.play(self.i_sound)
+    def update(self):
+        self.inbounds()
+        if self.game.sound:
+            self.sound()
+        if self.game.now - self.last_fire >= 800:
+            self.shoot()
+        self.bullet_collide()
 
 class Bullet(Sprite):
     def __init__(self,direction,location,game):

@@ -27,6 +27,7 @@ m_ast = os.path.join(img_folder, "m_ast")
 l_ast = os.path.join(img_folder, "l_ast")
 particle_img = os.path.join(img_folder, "particles")
 player_imgs = os.path.join(img_folder, "player")
+invader_imgs = os.path.join(img_folder, "invader")
 icon = pg.image.load(os.path.join(player_imgs, "icon.png"))
 icon.set_colorkey(GREEN)
 
@@ -71,7 +72,7 @@ class Game:
         self.last_sprite = -1000
         self.music_buffer = 1000
         self.last_played = 0
-        self.sound = False
+        self.sound = True
         self.math_vis = False
         if self.sound:
             self.beat1 = pg.mixer.Sound(os.path.join(sound_folder, "beat1.wav"))
@@ -95,11 +96,13 @@ class Game:
         self.pt_image = pg.image.load(os.path.join(player_imgs, "thruster.png")).convert()
         self.puc_image = pg.image.load(os.path.join(player_imgs, "unit_circle.png")).convert()
         self.pd_image = pg.image.load(os.path.join(player_imgs, "direction.png")).convert()
-        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
+        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png")).convert()
+        self.large_inv_image = pg.image.load(os.path.join(invader_imgs, "invaderBig.png")).convert()
         # image used on Player
         # defines player with the image 
         self.new_player()
-        # self.large_ast_spawn(4)
+        self.large_inv_spawn(1)
+        self.large_ast_spawn(4)
         self.run()
     def small_ast_spawn(self, number, broken=False, pos=None):
         s_asteroid_rect = self.s_asteroid1.get_rect()
@@ -143,6 +146,14 @@ class Game:
                 l_asteroid = self.l_asteroid4
             la = Ast(l_asteroid,l_asteroid_rect,"large_ast", self)
             self.all_sprites.add(la)
+    def large_inv_spawn(self, number):
+        l_inv_rect = self.large_inv_image.get_rect()
+        imgs = [self.large_inv_image, l_inv_rect]
+        for i in range(0,number):
+            li = Invader("large", imgs, self)
+            # li = Ast(imgs[0], imgs[1], "large", self)
+            self.all_sprites.add(li)
+            print(self.all_sprites)
     def new_player(self):
         p_image_rect = self.p_image.get_rect()
         puc_image_rect = self.puc_image.get_rect()
