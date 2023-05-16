@@ -15,8 +15,11 @@ add invaders
 import pygame as pg
 import os
 # import settings and sprites files
-from settings import *
-from sprites import *
+from settings_copy import *
+from sprites_copy import *
+from title_screen import *
+from end_screen import *
+from math_funcs import *
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
@@ -26,6 +29,10 @@ m_ast = os.path.join(img_folder, "m_ast")
 l_ast = os.path.join(img_folder, "l_ast")
 particle_img = os.path.join(img_folder, "particles")
 player_imgs = os.path.join(img_folder, "player")
+invader_imgs = os.path.join(img_folder, "invader")
+title_imgs = os.path.join(img_folder, "title")
+icon = pg.image.load(os.path.join(title_imgs, "icon.png"))
+icon.set_colorkey(GREEN)
 
 # create game class in order to pass properties to the sprites file
 class Game:
@@ -39,6 +46,7 @@ class Game:
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
         # names the window
         pg.display.set_caption("Asteroids")
+        pg.display.set_icon(icon)
         # stores the clock class
         self.clock = pg.time.Clock()
         # used for while loop
@@ -50,6 +58,12 @@ class Game:
         self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
         self.player_life_rect = self.player_life_img.get_rect()
     # sets up in game settings
+    # def title_screen(self):
+    #     self.large_ast_spawn(2)
+    #     self.medium_ast_spawn(2)
+    #     self.small_ast_spawn(2)
+    # def new(self):
+    #     self.title_screen()
     def new(self):
         # starting a new game
         self.score = 0
@@ -67,8 +81,8 @@ class Game:
         self.last_sprite = -1000
         self.music_buffer = 1000
         self.last_played = 0
-        self.sound = True
-        self.math_vis = True
+        self.sound = False
+        self.math_vis = False
         if self.sound:
             self.beat1 = pg.mixer.Sound(os.path.join(sound_folder, "beat1.wav"))
             self.beat2 = pg.mixer.Sound(os.path.join(sound_folder, "beat2.wav"))
@@ -91,10 +105,14 @@ class Game:
         self.pt_image = pg.image.load(os.path.join(player_imgs, "thruster.png")).convert()
         self.puc_image = pg.image.load(os.path.join(player_imgs, "unit_circle.png")).convert()
         self.pd_image = pg.image.load(os.path.join(player_imgs, "direction.png")).convert()
-        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
+        self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png")).convert()
+        self.large_inv_image = pg.image.load(os.path.join(invader_imgs, "invaderBig.png")).convert()
+        self.game_over = False
+        self.check_player = True
         # image used on Player
         # defines player with the image 
         self.new_player()
+        # self.large_inv_spawn(1)
         self.large_ast_spawn(4)
         self.run()
     def small_ast_spawn(self, number, broken=False, pos=None):
@@ -139,6 +157,13 @@ class Game:
                 l_asteroid = self.l_asteroid4
             la = Ast(l_asteroid,l_asteroid_rect,"large_ast", self)
             self.all_sprites.add(la)
+    def large_inv_spawn(self, number):
+        l_inv_rect = self.large_inv_image.get_rect()
+        imgs = [self.large_inv_image, l_inv_rect]
+        for i in range(0,number):
+            li = Invader("large", imgs, self)
+            # li = Ast(imgs[0], imgs[1], "large", self)
+            self.all_sprites.add(li)
     def new_player(self):
         p_image_rect = self.p_image.get_rect()
         puc_image_rect = self.puc_image.get_rect()
@@ -167,12 +192,14 @@ class Game:
         self.player_life_rect.x = 20
         self.player_life_rect.y = 50
     def run(self):
+        self.should_quit = False
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+        return self.should_quit
     # detects anything that happens in the game
     def events(self):
         for event in pg.event.get():
@@ -181,6 +208,7 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
+                self.should_quit = True
     def p_death_ani(self):
         self.life_count -= 1
         line_image_rect = self.line_image.get_rect()
@@ -196,9 +224,13 @@ class Game:
             d = Particles(imgs,"dot",self,"mob",size)
             self.all_sprites.add(d)
     def is_new_player(self):
-        if self.life_count != 0 and len(self.players) == 0:
+        if self.life_count > 0 and len(self.players) == 0:
             if self.now - self.time_of_death >= 1400:
                 self.new_player()
+        elif self.life_count <= 0 and len(self.players) == 0:
+            self.game_over = True
+            self.game_over_time = self.now
+            self.check_player = False
     def update_ast_list(self):
         for i in self.asteroids:
             if not i[3]:
@@ -280,11 +312,21 @@ class Game:
         # updates the sprites
         self.now = pg.time.get_ticks()
         self.all_sprites.update()
-        self.is_new_player()
+        if self.check_player:
+            self.is_new_player()
         self.update_bullet_list()
         self.update_ast_list()
         if self.sound:
             self.main_music()
+        if self.game_over:
+            print(self.game_over, self.now - self.game_over_time)
+        if self.game_over and self.now - self.game_over_time >= 1300:
+            print(11)
+            if self.playing:
+                self.playing = False
+            self.running = False
+            new_end()
+            
     def draw(self):
         #make background black
         self.screen.fill(BLACK)
@@ -295,10 +337,14 @@ class Game:
             self.draw_math()
         # is this a method or a function? -- function
         # only refreshes the window
+        if self.game_over:
+            self.draw_text("GAME OVER", "Hyperspace", 80, WHITE, 
+                       WIDTH/2, HEIGHT/2, "center", True)
+            self.sound = False 
         self.draw_text(str(self.score), "Hyperspace", 60, WHITE, 20,5,"topleft",True,False)
         pg.display.flip()
     # print text on the display
-    def draw_text(self, text, font, size, color, x, y, align, bold, italicize):
+    def draw_text(self, text, font, size, color, x, y, align="topleft", bold=False, italicize=False):
         font_name = pg.font.match_font(font, bold, italicize)
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)
@@ -328,11 +374,35 @@ class Game:
         x,y = pg.mouse.get_pos()
         return (x,y)
 
-# instantiate the game class...
-g = Game()
+def game_loop():
+    # load_high_scores()
+    while True:
+        t = Title()
+        t.new()
+        should_quit = t.run()
+        if should_quit:
+            break
+        g = Game()
+        g.new()
+        should_quit = g.run()
 
-# kick off the game loop
-while g.running:
-    g.new()
-# ends the pg program
+def new_title():
+    t = Title()
+    t.new()
+    should_quit = t.run()
+    if not should_quit:
+        new_game()
+
+def new_game():
+    g = Game()
+    while g.running:
+        g.new()
+
+def new_end():
+    e = End()
+    while e.running:
+        e.new()
+
+game_loop()
+
 pg.quit()

@@ -1,4 +1,4 @@
-# File created by: Liam Newberry
+#File created by: Liam Newberry
 import pygame as pg
 from sprites_copy import *
 from settings_copy import *
@@ -52,14 +52,16 @@ class Title:
             self.asteroids = []
             self.pbullets_active = []
         self.ast_spawn(5)
-        self.run()
+        #self.run()
     def run(self):
+        self.should_quit = False
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+        return self.should_quit
     def events(self):
         for event in pg.event.get():
             # if the app is quit, end the program
@@ -67,16 +69,14 @@ class Title:
                 if self.playing:
                     self.playing = False
                 self.running = False
+                self.should_quit = True
             if event.type == pg.MOUSEBUTTONDOWN:
                 coords = self.get_mouse_now()
                 if self.play_now_rect.collidepoint(coords):
                     if self.playing:
                         self.playing = False
                     self.running = False
-                    from main_copy import new_game
-                    from main_copy import t_init
-                    t_init = False
-                    new_game()
+                    self.should_quit = False
     def ast_spawn(self, number, broken=False, pos=None):
         for i in range(0,number):
             new_choice = randint(1,3)

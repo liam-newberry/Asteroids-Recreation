@@ -21,14 +21,17 @@ class End:
         self.clock = pg.time.Clock()
         self.running = True
     def new(self):
-        self.run()
+        #self.run()
+        pass
     def run(self):
+        self.should_quit = False
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+        return self.should_quit
     def events(self):
         for event in pg.event.get():
             # if the app is quit, end the program
@@ -36,14 +39,13 @@ class End:
                 if self.playing:
                     self.playing = False
                 self.running = False
+                self.should_quit = True
             if event.type == pg.MOUSEBUTTONDOWN:
                 coords = self.get_mouse_now()
                 if self.new_game_rect.collidepoint(coords):
                     if self.playing:
                         self.playing = False
                     self.running = False
-                    from main_copy import new_title
-                    new_title()
     def update(self):
         # updates the sprites
         self.now = pg.time.get_ticks()

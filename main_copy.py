@@ -20,6 +20,7 @@ from sprites_copy import *
 from title_screen import *
 from end_screen import *
 from math_funcs import *
+from datetime import datetime
 # set up assets folders
 game_folder = os.path.dirname(__file__)
 img_folder = os.path.join(game_folder, "images")
@@ -57,13 +58,6 @@ class Game:
         self.time_of_death = pg.time.get_ticks()
         self.player_life_img = pg.image.load(os.path.join(player_imgs, "player_lives.png"))
         self.player_life_rect = self.player_life_img.get_rect()
-    # sets up in game settings
-    # def title_screen(self):
-    #     self.large_ast_spawn(2)
-    #     self.medium_ast_spawn(2)
-    #     self.small_ast_spawn(2)
-    # def new(self):
-    #     self.title_screen()
     def new(self):
         # starting a new game
         self.score = 0
@@ -114,7 +108,7 @@ class Game:
         self.new_player()
         # self.large_inv_spawn(1)
         self.large_ast_spawn(4)
-        self.run()
+        #self.run()
     def small_ast_spawn(self, number, broken=False, pos=None):
         s_asteroid_rect = self.s_asteroid1.get_rect()
         for i in range(0,number):
@@ -162,7 +156,7 @@ class Game:
         imgs = [self.large_inv_image, l_inv_rect]
         for i in range(0,number):
             li = Invader("large", imgs, self)
-            # li = Ast(imgs[0], imgs[1], "large", self)
+
             self.all_sprites.add(li)
     def new_player(self):
         p_image_rect = self.p_image.get_rect()
@@ -192,12 +186,14 @@ class Game:
         self.player_life_rect.x = 20
         self.player_life_rect.y = 50
     def run(self):
+        self.should_quit = False
         self.playing = True
         while self.playing:
             self.clock.tick(FPS)
             self.events()
             self.update()
             self.draw()
+        return self.should_quit
     # detects anything that happens in the game
     def events(self):
         for event in pg.event.get():
@@ -206,6 +202,7 @@ class Game:
                 if self.playing:
                     self.playing = False
                 self.running = False
+                self.should_quit = True
     def p_death_ani(self):
         self.life_count -= 1
         line_image_rect = self.line_image.get_rect()
@@ -315,14 +312,10 @@ class Game:
         self.update_ast_list()
         if self.sound:
             self.main_music()
-        if self.game_over:
-            print(self.game_over, self.now - self.game_over_time)
         if self.game_over and self.now - self.game_over_time >= 1300:
-            print(11)
             if self.playing:
                 self.playing = False
             self.running = False
-            new_end()
             
     def draw(self):
         #make background black
@@ -370,42 +363,95 @@ class Game:
     def get_mouse_now(self):
         x,y = pg.mouse.get_pos()
         return (x,y)
-    
-# def repeat():
-#     # instantiate the game class...
-#     t = Title()
-#     g = Game()
-#     e = End()
-#     done = False
-#     # kick off the game loop
-#     while t.running:
-#         t.new()
-#     while g.running:
-#         g.new()
-#     while e.running:
-#         e.new()
-#     # ends the pg program
-# repeat()
-t_init = False
 
-def new_title():
-    t = Title()
-    while t.running:
+# could be 5 or 10
+MAX_HIGH_SCORES = 10
+high_scores = []
+path_to_high_scores = "asteroid_high_scores.csv"
+
+def load_high_scores():
+    lines = []
+    try:
+        with open(path_to_high_scores) as file:
+            lines = file.read().splitlines()
+    except:
+        pass
+    count = 0
+    for line in lines:
+        line_list = line.split(',')
+        if len(line_list) == 3:
+            name = line_list[2]
+            date = line_list[1]
+            score = int(line_list[0])
+            new_score = [score,date,name]
+            high_scores.append(new_score)
+            count += 1
+            if count > MAX_HIGH_SCORES:
+                break
+
+def save_high_scores():
+    with open(path_to_high_scores,'w') as f:
+        for score in high_scores:
+            name = score[2]
+            date = score[1]
+            s = score[0]
+            s = str(s)
+            print(s + ',' + date + ',' + name, file=f)
+
+def is_high_score(score):
+    # if the score is 0, then it's not a high score
+    if score == 0:
+        return False
+    count = 0
+    for item in high_scores:
+        count += 1
+        # if the score is bigger than a score in our list, then it is a high score
+        if score > item[0]:
+            return True
+    # if we don't have the max number of high scores yet, then this is a high score
+    if count < MAX_HIGH_SCORES:
+        return True
+    # not a high score
+    return False
+
+def add_high_score(name,date,score):
+    high_score = [score,date,name]
+    inserted = False
+    for i in range(0,len(high_scores)):
+        if score > high_scores[i][0]:
+            high_scores.insert(i, high_score)
+            inserted = True
+            break
+    if not inserted:
+        high_scores.append(high_score)
+    while len(high_scores) > MAX_HIGH_SCORES:
+        high_scores.pop(-1)
+    save_high_scores()
+
+def game_loop():
+    load_high_scores()
+    while True:
+        t = Title()
         t.new()
-
-def new_game():
-    g = Game()
-    while g.running:
+        should_quit = t.run()
+        if should_quit:
+            break
+        g = Game()
         g.new()
-
-def new_end():
-    e = End()
-    while e.running:
+        should_quit = g.run()
+        if is_high_score(g.score):
+            # need a way to get the player's name
+            now = datetime.now()
+            now = str(now.month) + "/" + str(now.day) + "/" + str(now.year)
+            add_high_score("PLAYER_NAME",now,g.score)
+        if should_quit:
+            break
+        e = End()
         e.new()
+        should_quit = e.run()
+        if should_quit:
+            break
 
-if not t_init:
-    t_init = True
-    new_title()
-    
+game_loop()
 
 pg.quit()
