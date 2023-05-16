@@ -96,7 +96,6 @@ class Player(Sprite):
             vels = unit_cir(self.angle, PMAX_VEL)
             xvel = vels[0]
             yvel = vels[1]
-            print(vels)
             if True:
                 if self.type == "thrust":
                     if self.thrust_interval < 2:
@@ -284,17 +283,8 @@ class Player(Sprite):
         else:
             self.immunity_interval = 0
     def update(self):
-        # acceleration based on gravity
-        # maximum velocities
-        # if not self.hyper_acc:
         self.acc.x = self.vel.x * PLAYER_FRICTION
         self.acc.y = self.vel.y * PLAYER_FRICTION
-        # else:
-        #     self.acc.x = self.vel.x * 0
-        #     self.acc.y = self.vel.y * 0
-        #     self.hyper_acc = False
-        # runs p input every second
-        # print("vel: "+ str(self.vel))
         self.input()
         self.inbounds()
         self.mob_collide()
@@ -313,7 +303,6 @@ class Player(Sprite):
             self.acc_interval = True
         self.pos += self.vel + 0.5 * self.acc
         self.rect.center = self.pos
-        print(self.vel, self.acc)
         if abs(self.vel.x) < 0.1:
             self.vel.x = 0
         if abs(self.vel.y) < 0.1:
@@ -329,7 +318,6 @@ class Ast(Sprite):
     # init the mobs initial settings and attributes
     def __init__(self, simg, simg_rect, type, game, broken=False, new_pos=None):
         Sprite.__init__(self)
-        # print([simg, simg_rect])
         self.game = game
         self.type = type
         simg.set_colorkey(BLACK)
@@ -481,7 +469,6 @@ class Invader(Sprite):
         Sprite.__init__(self)
         self.game = game
         self.type = type
-        print(simg)
         pos_choice = choice(("left", "right"))
         if type == "large":
             self.vel = vec(INVADER_L_MAX_VEL, 0)
@@ -497,11 +484,14 @@ class Invader(Sprite):
             self.radius = INVADER_S_RADIUS
             if self.game.sound:
                 self.i_sound = pg.mixer.Sound(os.path.join(sound_folder, "saucerSmall.wav"))
+        if self.game.sound:
+            self.i_sound.set_volume(INVADER_VOLUME)
         if pos_choice == "left":
             pos_choice = 0
         elif pos_choice == "right":
             pos_choice = WIDTH
             self.vel.x *= -1
+        self.rect = self.image.get_rect()
         self.pos = vec(pos_choice, randint(10,HEIGHT-10))
         self.last_fire = 200
     def inbounds(self):

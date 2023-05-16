@@ -1,5 +1,4 @@
 add waves
-add start menu
 add invaders
 add accuracy stats/general stats
 http://www.classicgaming.cc/classics/asteroids/sounds
