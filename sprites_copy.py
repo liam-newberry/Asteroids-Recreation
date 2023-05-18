@@ -70,6 +70,7 @@ class Player(Sprite):
         self.fire_load = False
         self.last_pressed = 1500
         self.hyper_acc = False
+        # load sounds
         if typ == "cont" and self.game.sound:
             self.bangSmall = pg.mixer.Sound(os.path.join(sound_folder, "bangSmall.wav"))
             self.bangMedium = pg.mixer.Sound(os.path.join(sound_folder, "bangMedium.wav"))
@@ -84,6 +85,7 @@ class Player(Sprite):
         keystate = pg.key.get_pressed()
         # thrust
         if keystate[pg.K_w] or keystate[pg.K_UP]:
+            # thrust sound
             if not pg.mixer.music.get_busy() and self.type == "cont" and self.game.sound:
                 if not self.music_load:
                     pg.mixer.music.load(os.path.join(sound_folder, "thrust.wav"))
@@ -93,9 +95,11 @@ class Player(Sprite):
                 pg.mixer.music.unpause()
             self.angle = self.rot
             self.angle += 90
+            # get vels for angle
             vels = unit_cir(self.angle, PMAX_VEL)
             xvel = vels[0]
             yvel = vels[1]
+            # flicker thrust image
             if True:
                 if self.type == "thrust":
                     if self.thrust_interval < 2:
@@ -106,49 +110,35 @@ class Player(Sprite):
                         self.thrust_interval += 1
                     else:
                         self.thrust_interval = 0
+            # is at max x vel
             if abs(self.vel.x) <= abs(xvel):
                 if abs(self.vel.x) <= PMAX_VEL:
                     mx_acc = xvel/PMAX_VEL
                     mx_acc *= PLAYER_ACC
                     mx_acc *= 1
                     self.acc.x = mx_acc
-            # else:
-            #     self.acc.x = 0
+            # is at max y vel
             if abs(self.vel.y) <= abs(yvel):
                 if abs(self.vel.y) <= PMAX_VEL:
                     my_acc = yvel/PMAX_VEL
                     my_acc *= PLAYER_ACC
                     my_acc *= -1
                     self.acc.y = my_acc
-            # else:
-            #     self.acc.y = 0
         else:
+            # pause thrust music and take away image
             if self.type == "thrust":
                 self.image.set_alpha(0)
                 if self.game.sound:
                     pg.mixer.music.pause()
-        if keystate[pg.K_1]:
-            if self.vel.y > -PMAX_VEL:
-                self.acc.y = -PLAYER_ACC
-        # a moves left
-        if keystate[pg.K_2]:
-            if self.vel.x > -PMAX_VEL:
-                self.acc.x = -PLAYER_ACC
-        # s moves down
-        if keystate[pg.K_3]:
-            if self.vel.y < PMAX_VEL:
-                self.acc.y = PLAYER_ACC
-        # d moves right
-        if keystate[pg.K_4]:
-            if self.vel.x < PMAX_VEL:
-                self.acc.x = PLAYER_ACC
-        # maybe controller in future?
+        # rot left
         if keystate[pg.K_LEFT] or keystate[pg.K_a]:
             self.rot_speed = PROT_SPEED
             self.rotate()
+        # rot right
         if keystate[pg.K_RIGHT] or keystate[pg.K_d]:
             self.rot_speed = -PROT_SPEED
             self.rotate()
+        # teleport
         if keystate[pg.K_e]:
             if self.game.now - self.last_pressed >= 1500:
                 self.vel = vec(0,0)
@@ -157,8 +147,10 @@ class Player(Sprite):
                 self.pos = self.game.player.pos
                 self.last_pressed = self.game.now
                 self.hyper_acc = True
+        # fire bullets
         if keystate[pg.K_SPACE]:
             if self.type == "cont":
+                # every .2 seconds
                 if len(self.game.pbullets) == 0 or self.game.now - self.game.pbullets[0].birth > 200:
                     angle = self.rot - 90
                     direction = unit_cir(angle, BMAX_VEL)
@@ -168,10 +160,12 @@ class Player(Sprite):
                     location[0] *= -1
                     position[0] += location[0]
                     position[1] += location[1]
+                    # new bullet
                     b = Bullet(direction, position, self.game)
                     self.game.all_sprites.add(b)
                     self.game.pbullets.append(b)
                     self.game.pbullets_active.append(b)
+                    # shoot sound
                     if not self.fire_load and self.game.sound:
                         self.fire_sound = pg.mixer.Sound(os.path.join(sound_folder, "fire.wav"))
                         self.fire_sound.set_volume(PFIRE_VOLUME)
@@ -180,9 +174,11 @@ class Player(Sprite):
                         pg.mixer.Sound.play(self.fire_sound)
                     self.last_sound = pg.time.get_ticks()
     def rotate(self):
+        # rotate player
         alpha = self.image.get_alpha()
         self.last_update = self.game.now
         self.rot = (self.rot + self.rot_speed) % 360
+        # math vis stuff
         if self.type != "unit circle":
             new_image = pg.transform.rotate(self.image_orig, self.rot)
             old_center = self.rect.center
@@ -205,6 +201,7 @@ class Player(Sprite):
             self.pos.y = HEIGHT
     # when a player hits a mob...
     def mob_collide(self):
+        # if collides with mob
         if self.type == "cont":
             if self.game.now - self.birth >= P_IMMUNITY:
                 for ast in self.game.asteroids:
@@ -226,8 +223,10 @@ class Player(Sprite):
                         mani_num = MOB_L_ANI_NUM
                         mscore = MOB_L_SCORE
                         mani = "l_ast"
+                    # did they collide?
                     if is_touching(self.pos,PLAYER_RADIUS, mpos, mradius):
                         for i in self.game.all_sprites:
+                            # is it an ast
                             if "<class 'sprites_copy.Ast'>" == str(type(i)):
                                 if i.serial == mserial:
                                     self.game.near_death.append(mpos)
@@ -240,9 +239,11 @@ class Player(Sprite):
                                     self.spawn_ast()
                                     i.kill()
                                     self.game.score += mscore
+                                    # death animation
                                     if self.type == "cont" and self.temp:
                                         self.temp = False
                                         self.game.p_death_ani()
+                                    # sounds
                                     if self.game.sound:
                                         if mtype == "small_ast":
                                             crash_sound = self.bangSmall
@@ -254,6 +255,7 @@ class Player(Sprite):
                                         pg.mixer.Sound.play(crash_sound)
                                     self.temp = True
                                     break
+                        # kill players
                         for player in self.game.players:
                             if self.game.sound:
                                 if pg.mixer.music.get_busy():
@@ -261,19 +263,56 @@ class Player(Sprite):
                             self.game.death = True
                             player.kill()
             else:
+                # if immunity is off
                 if self.type == "cont":
                     if self.image.get_alpha() == 255:
                         self.image.set_alpha(0)
                     elif self.image.get_alpha() == 0:
                         self.image.set_alpha(255)
     def invader_collide(self):
-        pass
+        # collide with invaders
+        # similar to mobs
+        if self.type == "cont":
+            if self.game.now - self.birth >= P_IMMUNITY:
+                for inv in self.game.all_sprites:
+                    if "Invader" in str(type(inv)):
+                        print(inv.type)
+                        if inv.type == "small":
+                            iradius = INVADER_S_RADIUS
+                            iani_num = MOB_S_ANI_NUM
+                            iscore = INVADER_S_SCORE
+                            iani = "s_ast"
+                        if inv.type == "large":
+                            iradius = INVADER_L_RADIUS
+                            iani_num = MOB_L_ANI_NUM
+                            iscore = INVADER_L_SCORE
+                            iani = "l_ast"
+                        if is_touching(self.pos,PLAYER_RADIUS, inv.pos, iradius):
+                            self.game.near_death.append(inv.pos)
+                            self.game.ast_ani(iani_num,iani)
+                            self.game.near_death.pop(0)
+                            inv.update()
+                            inv.kill()
+                            self.game.score += iscore
+                            if self.type == "cont" and self.temp:
+                                self.temp = False
+                                self.game.p_death_ani()
+                            self.temp = True
+                            for player in self.game.players:
+                                if self.game.sound:
+                                    if pg.mixer.music.get_busy():
+                                        pg.mixer.music.stop()
+                                self.game.death = True
+                                player.kill()
+                            break
     def spawn_ast(self):
+        # break down asts
         if self.mtype == "large_ast":
             self.game.medium_ast_spawn(2,True,self.i_pos)
         if self.mtype == "medium_ast":
             self.game.small_ast_spawn(2,True,self.i_pos)
     def immunity_blink(self):
+        # blink when new spawn
         if self.immunity_interval < 4:
             self.image.set_alpha(255)
             self.immunity_interval += 1
@@ -283,11 +322,13 @@ class Player(Sprite):
         else:
             self.immunity_interval = 0
     def update(self):
+        # update pos and check all funcs
         self.acc.x = self.vel.x * PLAYER_FRICTION
         self.acc.y = self.vel.y * PLAYER_FRICTION
         self.input()
         self.inbounds()
         self.mob_collide()
+        self.invader_collide()
         if pg.time.get_ticks() - self.birth < 1200:
             if self.type == "cont":
                 self.immunity_blink()
@@ -307,12 +348,7 @@ class Player(Sprite):
             self.vel.x = 0
         if abs(self.vel.y) < 0.1:
             self.vel.y = 0
-        # if self.type != "cont":
-        #     if self.pos != self.game.player.pos:
-        #         self.pos = self.game.player.pos
-        #     if self.type == "thrust" or "direction":
-        #         if self.rot != self.game.player.rot:
-        #             self.rot = self.game.player.rot
+
 # class for Mobs
 class Ast(Sprite):
     # init the mobs initial settings and attributes
@@ -424,6 +460,7 @@ class Ast(Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = old_center
     def bullet_collide(self):
+        # if player bullet hits it
         for pb in self.game.pbullets_active:
             if is_touching(self.pos,self.radius,pb.pos,B_RADIUS):
                 self.game.all_sprites.remove(pb)
@@ -444,7 +481,27 @@ class Ast(Sprite):
                 self.spawn_ast()
                 self.kill()
     def invader_collide(self):
-        pass
+        # if bumps into invader
+        for inv in self.game.all_sprites:
+            if "Invader" in str(type(inv)):
+                if inv.type == "small":
+                    iani_num = MOB_S_ANI_NUM
+                    iani = "s_ast"
+                if inv.type == "large":
+                    iani_num = MOB_L_ANI_NUM
+                    iani = "l_ast"
+                if is_touching(self.pos,self.radius,inv.pos,inv.radius):
+                    self.game.near_death.append(inv.pos)
+                    self.game.ast_ani(iani_num,iani)
+                    self.game.near_death.pop(0)
+                    self.game.near_death.append(self.pos)
+                    self.game.ast_ani(self.ani_num, self.ani)
+                    self.game.near_death.pop(0)
+                    inv.kill()
+                    self.spawn_ast()
+                    if self.game.sound:
+                        pg.mixer.Sound.play(self.crash_sound)
+                    self.kill()
     def spawn_ast(self):
         if self.type == "large_ast":
             self.game.medium_ast_spawn(2,True,self.pos)
@@ -454,6 +511,7 @@ class Ast(Sprite):
         # constantly run inbounds function
         self.inbounds()
         self.bullet_collide()
+        # self.invader_collide()
         self.pos += self.vel
         self.rect.center = self.pos
         for ind in self.game.asteroids:
@@ -467,6 +525,7 @@ class Ast(Sprite):
 class Invader(Sprite):
     def __init__(self, type, simg, game):
         Sprite.__init__(self)
+        simg[0].set_colorkey(BLACK)
         self.game = game
         self.type = type
         pos_choice = choice(("left", "right"))
@@ -475,6 +534,11 @@ class Invader(Sprite):
             self.image = pg.Surface((120,75))
             self.image.blit(simg[0], simg[1])
             self.radius = INVADER_L_RADIUS
+            self.image_orig = pg.transform.scale(simg[0],(125,75))
+            self.yvel = INVADER_L_Y_VEL
+            self.score_num = INVADER_L_SCORE
+            self.ani_num = MOB_M_ANI_NUM
+            self.ani = "m_ast"
             if self.game.sound:
                 self.i_sound = pg.mixer.Sound(os.path.join(sound_folder, "saucerBig.wav"))
         elif type == "small":
@@ -482,6 +546,11 @@ class Invader(Sprite):
             self.image = pg.Surface((0,0))
             self.image.blit(simg[0], simg[1])
             self.radius = INVADER_S_RADIUS
+            self.image_orig = pg.transform.scale(simg[0],(72,45))
+            self.yvel = INVADER_S_Y_VEL
+            self.score_num = INVADER_S_SCORE
+            self.ani_num = MOB_S_ANI_NUM
+            self.ani = "s_ast"
             if self.game.sound:
                 self.i_sound = pg.mixer.Sound(os.path.join(sound_folder, "saucerSmall.wav"))
         if self.game.sound:
@@ -494,6 +563,9 @@ class Invader(Sprite):
         self.rect = self.image.get_rect()
         self.pos = vec(pos_choice, randint(10,HEIGHT-10))
         self.last_fire = 200
+        self.bouncing = False
+        self.bounce_time = 800
+        self.rotate(360)
     def inbounds(self):
         # right
         if self.pos.x > WIDTH and self.vel.x > 0:
@@ -507,14 +579,65 @@ class Invader(Sprite):
         # top
         if self.pos.y < 0 and self.vel.y < 0:
             self.pos.y = HEIGHT
+    def rotate(self, angle):
+        new_image = pg.transform.rotate(self.image_orig, angle)
+        old_center = self.rect.center
+        self.image = new_image
+        self.rect = self.image.get_rect()
+        self.rect.center = old_center
     def bullet_collide(self):
-        pass
+        # same as ast
+        for pb in self.game.pbullets_active:
+            if is_touching(self.pos,self.radius,pb.pos,B_RADIUS):
+                self.game.all_sprites.remove(pb)
+                for bullet in self.game.all_sprites:
+                    if str(type(bullet)) == "<class 'sprites_copy.Bullet'>":
+                        if abs(bullet.birth - pb.birth < 100):
+                            self.game.all_sprites.remove(bullet)
+                            bullet.kill()
+                self.game.pbullets_active.remove(pb)
+                pb.kill()
+                self.game.score += self.score_num
+                self.game.near_death.append(self.pos)
+                self.game.ast_ani(self.ani_num,self.ani)
+                self.game.near_death.pop(0)
+                self.living = False
+                self.kill()
     def shoot(self):
+        # shoot bullets at player
+        if self.game.now - self.last_fire > 1000:
+            angle = 360 - 90
+            direction = unit_cir(angle, BMAX_VEL)
+            direction[0] *= -1
+            position = self.pos
+            b = Bullet(direction, position, self.game)
+            self.game.all_sprites.add(b)
+            self.last_fire = pg.time.get_ticks()
         pass
     def sound(self):
         if pg.mixer.Sound.get_num_channels(self.i_sound) == 0:
             pg.mixer.Sound.play(self.i_sound)
+    def y_bounce(self):
+        # move up and down
+        yvel_rand = randint(0,60)
+        if yvel_rand == 30 and not self.bouncing:
+            self.bounce_time = self.game.now
+            yvel_charge_rand = randint(1,2)
+            if yvel_charge_rand == 2:
+                self.yvel *= -1
+            self.bouncing = True
+            self.vel.y = self.yvel
+        elif self.bouncing:
+            pass
+        else:
+            self.vel.y = 0
+        if self.game.now - self.bounce_time > 800:
+            self.bouncing = False
     def update(self):
+        # update all funcs
+        self.y_bounce()
+        self.pos += self.vel
+        self.rect.center = self.pos
         self.inbounds()
         if self.game.sound:
             self.sound()
@@ -525,6 +648,7 @@ class Invader(Sprite):
 class Bullet(Sprite):
     def __init__(self,direction,location,game):
         Sprite.__init__(self)
+        # all necessary settings
         self.game = game
         self.width = B_LEN
         self.height = B_LEN
@@ -628,5 +752,6 @@ class Particles(Sprite):
         self.pos += self.vel
         self.rect.center = self.pos
         self.inbounds()
+        # dies at random time
         if self.game.now - self.birth > randint(650,1300):
             self.kill()

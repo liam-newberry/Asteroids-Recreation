@@ -47,11 +47,15 @@ MOB_L_ANI_NUM = 7
 MOB_L_SCORE = 20
 MOB_CRASH_VOLUME = 50 / 100
 # invader applied settings
-INVADER_S_MAX_VEL = MOB_S_MAX_VEL
-INVADER_L_MAX_VEL = MOB_M_MAX_VEL
-INVADER_S_RADIUS = 0
+INVADER_S_MAX_VEL = 4
+INVADER_L_MAX_VEL = 3
+INVADER_S_Y_VEL = 2
+INVADER_L_Y_VEL = 1.5
+INVADER_S_RADIUS = 33
 INVADER_L_RADIUS = 42
-INVADER_VOLUME = 50 / 100
+INVADER_S_SCORE = 200
+INVADER_L_SCORE = 150
+INVADER_VOLUME = 25 / 100
 # bullet applied settings
 B_SERIAL = 0
 BMAX_VEL = 30 * 30/FPS
@@ -85,3 +89,14 @@ clk = False
 # dimenstions of player image
 player_x_len = 50
 player_y_len = 100
+# lists
+MOB_ALL_VELS = [MOB_S_MAX_VEL, MOB_S_MIN_VEL,
+                MOB_M_MAX_VEL, MOB_M_MIN_VEL,
+                MOB_L_MAX_VEL, MOB_M_MIN_VEL,]
+WAVES = [[4,0,0],
+         [6,0,0],
+         [4,0,1],
+         [4,1,0],
+         [6,1,1],
+         [6,1,2],
+         [6,2,2]]

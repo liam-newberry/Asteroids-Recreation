@@ -51,6 +51,7 @@ class Title:
             self.sound = False
             self.asteroids = []
             self.pbullets_active = []
+        # spawn 5 random asteroids to float around
         self.ast_spawn(5)
         #self.run()
     def run(self):
@@ -72,12 +73,14 @@ class Title:
                 self.should_quit = True
             if event.type == pg.MOUSEBUTTONDOWN:
                 coords = self.get_mouse_now()
+                # if clicks play game
                 if self.play_now_rect.collidepoint(coords):
                     if self.playing:
                         self.playing = False
                     self.running = False
                     self.should_quit = False
     def ast_spawn(self, number, broken=False, pos=None):
+        # spawn random ast
         for i in range(0,number):
             new_choice = randint(1,3)
             if new_choice == 1:
@@ -127,11 +130,14 @@ class Title:
         self.screen.fill(BLACK)
         # blit all the sprites
         self.all_sprites.draw(self.screen)
+        # title image
         self.screen.blit(self.title_img, self.title_rect)
+        # create button to play game
         self.play_now_rect = self.draw_text("PLAY GAME", "Hyperspace", 80, 
                                             WHITE, WIDTH/2, HEIGHT*2/3, "center", True)
         pg.display.flip()
     def draw_text(self, text, font, size, color, x, y, align="topleft", bold=False, italicize=False):
+        # to write on screen
         font_name = pg.font.match_font(font, bold, italicize)
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)

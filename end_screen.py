@@ -42,6 +42,7 @@ class End:
                 self.should_quit = True
             if event.type == pg.MOUSEBUTTONDOWN:
                 coords = self.get_mouse_now()
+                # new game button pressed
                 if self.new_game_rect.collidepoint(coords):
                     if self.playing:
                         self.playing = False
@@ -52,7 +53,7 @@ class End:
     def draw(self):
         #make background black
         self.screen.fill(BLACK)
-        # blit all the sprites
+        # draw the new game button
         self.new_game_rect = self.draw_text("NEW GAME", "Hyperspace", 80, 
                                             WHITE, WIDTH/2, HEIGHT*2/3, "center", True)
         pg.display.flip()
