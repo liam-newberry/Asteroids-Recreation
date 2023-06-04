@@ -56,6 +56,7 @@ INVADER_L_RADIUS = 42
 INVADER_S_SCORE = 200
 INVADER_L_SCORE = 150
 INVADER_VOLUME = 25 / 100
+INVADER_ACCURRACY_ANGLE = 20
 # bullet applied settings
 B_SERIAL = 0
 BMAX_VEL = 30 * 30/FPS
@@ -90,9 +91,10 @@ clk = False
 player_x_len = 50
 player_y_len = 100
 # lists
-MOB_ALL_VELS = [MOB_S_MAX_VEL, MOB_S_MIN_VEL,
+ENEMY_ALL_VELS = [MOB_S_MAX_VEL, MOB_S_MIN_VEL,
                 MOB_M_MAX_VEL, MOB_M_MIN_VEL,
-                MOB_L_MAX_VEL, MOB_M_MIN_VEL,]
+                MOB_L_MAX_VEL, MOB_M_MIN_VEL,
+                INVADER_S_MAX_VEL, INVADER_L_MAX_VEL]
 WAVES = [[4,0,0],
          [6,0,0],
          [4,0,1],

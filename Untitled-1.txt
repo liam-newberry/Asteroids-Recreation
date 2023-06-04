@@ -1,0 +1,8 @@
+multiply mob vels on waves
+add score sheet
+add teleporting
+fix double bullets
+fix killing player multiple times
+add extra lives every 10,000 points
+add accuracy stats, score, duration stats
+http://www.classicgaming.cc/classics/asteroids/sounds

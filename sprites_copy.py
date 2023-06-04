@@ -161,7 +161,7 @@ class Player(Sprite):
                     position[0] += location[0]
                     position[1] += location[1]
                     # new bullet
-                    b = Bullet(direction, position, self.game)
+                    b = Bullet(direction, position, self.game, "player")
                     self.game.all_sprites.add(b)
                     self.game.pbullets.append(b)
                     self.game.pbullets_active.append(b)
@@ -240,8 +240,7 @@ class Player(Sprite):
                                     i.kill()
                                     self.game.score += mscore
                                     # death animation
-                                    if self.type == "cont" and self.temp:
-                                        self.temp = False
+                                    if self.type == "cont":
                                         self.game.p_death_ani()
                                     # sounds
                                     if self.game.sound:
@@ -276,7 +275,6 @@ class Player(Sprite):
             if self.game.now - self.birth >= P_IMMUNITY:
                 for inv in self.game.all_sprites:
                     if "Invader" in str(type(inv)):
-                        print(inv.type)
                         if inv.type == "small":
                             iradius = INVADER_S_RADIUS
                             iani_num = MOB_S_ANI_NUM
@@ -293,11 +291,8 @@ class Player(Sprite):
                             self.game.near_death.pop(0)
                             inv.update()
                             inv.kill()
-                            self.game.score += iscore
-                            if self.type == "cont" and self.temp:
-                                self.temp = False
+                            if self.type == "cont":
                                 self.game.p_death_ani()
-                            self.temp = True
                             for player in self.game.players:
                                 if self.game.sound:
                                     if pg.mixer.music.get_busy():
@@ -305,6 +300,23 @@ class Player(Sprite):
                                 self.game.death = True
                                 player.kill()
                             break
+    def bullet_collide(self):
+        if self.game.now - self.birth >= P_IMMUNITY:
+            for bullet in self.game.all_sprites:
+                if ("Bullet" in str(type(bullet))
+                and bullet.type == "invader" 
+                and is_touching(self.pos, PLAYER_RADIUS, bullet.pos, B_RADIUS)):
+                    bullet.update()
+                    bullet.kill()
+                    if self.type == "unit circle":
+                        self.game.p_death_ani()
+                    for player in self.game.players:
+                        if self.game.sound:
+                            if pg.mixer.music.get_busy():
+                                pg.mixer.music.stop()
+                        self.game.death = True
+                        player.kill()
+                    break
     def spawn_ast(self):
         # break down asts
         if self.mtype == "large_ast":
@@ -329,6 +341,7 @@ class Player(Sprite):
         self.inbounds()
         self.mob_collide()
         self.invader_collide()
+        self.bullet_collide()
         if pg.time.get_ticks() - self.birth < 1200:
             if self.type == "cont":
                 self.immunity_blink()
@@ -606,14 +619,14 @@ class Invader(Sprite):
     def shoot(self):
         # shoot bullets at player
         if self.game.now - self.last_fire > 1000:
-            angle = 360 - 90
+            angle = find_angle(self.pos, self.game.player.pos)
+            # angle += randint(-INVADER_ACCURRACY_ANGLE,INVADER_ACCURRACY_ANGLE)
             direction = unit_cir(angle, BMAX_VEL)
-            direction[0] *= -1
-            position = self.pos
-            b = Bullet(direction, position, self.game)
+            direction[1] *= -1
+            direction = [direction[1], direction[0]]
+            b = Bullet(direction, self.pos, self.game, "invader")
             self.game.all_sprites.add(b)
             self.last_fire = pg.time.get_ticks()
-        pass
     def sound(self):
         if pg.mixer.Sound.get_num_channels(self.i_sound) == 0:
             pg.mixer.Sound.play(self.i_sound)
@@ -646,9 +659,10 @@ class Invader(Sprite):
         self.bullet_collide()
 
 class Bullet(Sprite):
-    def __init__(self,direction,location,game):
+    def __init__(self,direction,location,game,type):
         Sprite.__init__(self)
         # all necessary settings
+        self.type = type
         self.game = game
         self.width = B_LEN
         self.height = B_LEN

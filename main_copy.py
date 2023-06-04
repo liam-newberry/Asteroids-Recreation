@@ -119,7 +119,7 @@ class Game:
         # defines player with the image 
         self.new_player()
         # self.large_inv_spawn(1)
-        # self.small_inv_spawn(1)
+        self.small_inv_spawn(1)
         # self.large_ast_spawn(4)
         #self.run()
     def small_ast_spawn(self, number, broken=False, pos=None):
@@ -331,31 +331,15 @@ class Game:
         self.draw_text(("sin(" + angle + ") x " + str(PMAX_VEL) + " = " + yvel), "Hyperspace",
                         20, GREEN, WIDTH - 310, 50, "topleft", True, False)
     def draw_life_count(self):
-        # blit the images for how many lives the player has left
-        life_img1 = self.player_life_img
-        life_img1.set_colorkey(BLACK)
-        life_rect1 = self.player_life_rect
-        life_img2 = self.player_life_img
-        life_img2.set_colorkey(BLACK)
-        life_rect2 = self.player_life_rect
-        life_img3 = self.player_life_img
-        life_img3.set_colorkey(BLACK)
-        life_rect3 = self.player_life_rect
-        # if three lives
-        if self.life_count >= 3:
-            life_rect3.x = 110
-            life_rect3.y = 80
-            self.screen.blit(life_img3,life_rect3)
-        # if two lives
-        if self.life_count >= 2:
-            life_rect2.x = 60
-            life_rect2.y = 80
-            self.screen.blit(life_img2,life_rect2)
-        # if one life
-        if self.life_count >= 1:
-            life_rect1.x = 10 
-            life_rect1.y = 80
-            self.screen.blit(life_img1,life_rect3)
+        x_dist = 10
+        for life in range(0,self.life_count):
+            life_img = self.player_life_img
+            life_img.set_colorkey(BLACK)
+            life_rect = self.player_life_rect
+            life_rect.x = x_dist
+            life_rect.y = 80
+            self.screen.blit(life_img, life_rect)
+            x_dist += 50
     def is_game_over(self):
         # game ends 1.3 secs after player loses last life
         if self.game_over and self.now - self.game_over_time >= 1300:
@@ -376,6 +360,7 @@ class Game:
             self.large_inv_spawn(WAVES[self.wave_count][2])
             if self.wave_count < len(WAVES):
                 self.wave_count += 1
+                MOB_L_MAX_VEL *= MOB_L_MAX_VEL
     def update(self):
         # update all the functions that need to be constantly checked
         self.now = pg.time.get_ticks()
@@ -393,6 +378,7 @@ class Game:
         self.screen.fill(BLACK)
         # blit all the sprites
         self.all_sprites.draw(self.screen)
+        # self.draw_life_count()
         self.draw_life_count()
         if self.math_vis:
             self.draw_math()
@@ -434,101 +420,30 @@ class Game:
         x,y = pg.mouse.get_pos()
         return (x,y)
 
-# high scores for specific device
-MAX_HIGH_SCORES = 10
-high_scores = []
-# name of high score document
-path_to_high_scores = "asteroid_high_scores.csv"
-
-def load_high_scores():
-    lines = []
-    # seperates different score sets by line
-    try:
-        with open(path_to_high_scores) as file:
-            lines = file.read().splitlines()
-    except:
-        pass
-    count = 0
-    # seperate the name, date, score in each line
-    for line in lines:
-        line_list = line.split(',')
-        if len(line_list) == 3:
-            name = line_list[2]
-            date = line_list[1]
-            score = int(line_list[0])
-            new_score = [score,date,name]
-            high_scores.append(new_score)
-            count += 1
-            if count > MAX_HIGH_SCORES:
-                break
-
-def save_high_scores():
-    # write new high scores in the document
-    with open(path_to_high_scores,'w') as f:
-        for score in high_scores:
-            name = score[2]
-            date = score[1]
-            s = score[0]
-            s = str(s)
-            print(s + ',' + date + ',' + name, file=f)
-
-def is_high_score(score):
-    # if the score is 0, then it's not a high score
-    if score == 0:
-        return False
-    count = 0
-    for item in high_scores:
-        count += 1
-        # if the score is bigger than a score in our list, then it is a high score
-        if score > item[0]:
-            return True
-    # if we don't have the max number of high scores yet, then this is a high score
-    if count < MAX_HIGH_SCORES:
-        return True
-    # not a high score
-    return False
-
-def add_high_score(name,date,score):
-    # create new high score and add to doc
-    # all data for doc
-    high_score = [score,date,name]
-    inserted = False
-    # find pos for the new high score
-    for i in range(0,len(high_scores)):
-        if score > high_scores[i][0]:
-            high_scores.insert(i, high_score)
-            inserted = True
-            break
-    if not inserted:
-        high_scores.append(high_score)
-    while len(high_scores) > MAX_HIGH_SCORES:
-        high_scores.pop(-1)
-    save_high_scores()
-
 def game_loop():
     # loops for game, title, and end
     load_high_scores()
     # first is title
     while True:
-        t = Title()
-        t.new()
-        should_quit = t.run()
-        if should_quit:
-            break
-        # next is game
-        g = Game()
-        g.new()
-        should_quit = g.run()
-        # is there a new high score from this game
-        if is_high_score(g.score):
-            # need a way to get the player's name
-            now = datetime.now()
-            now = str(now.month) + "/" + str(now.day) + "/" + str(now.year)
-            add_high_score("PLAYER_NAME",now,g.score)
-        if should_quit:
-            break
+        # t = Title()
+        # t.new()
+        # should_quit = t.run()
+        # if should_quit:
+        #     break
+        # # next is game
+        # g = Game()
+        # g.new()
+        # should_quit = g.run()
+        # # is there a new high score from this game
+        # # if is_high_score(g.score):
+        # #     # need a way to get the player's name
+        # #     now = datetime.now()
+        # #     now = str(now.month) + "/" + str(now.day) + "/" + str(now.year)
+        # #     add_high_score("PLAYER_NAME",now,g.score)
+        # if should_quit:
+        #     break
         # new end screen
-        e = End()
+        e = End(100)#g.score)
         e.new()
         should_quit = e.run()
         if should_quit:

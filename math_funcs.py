@@ -1,6 +1,5 @@
 # File created by: Liam Newberry
 from math import *
-
 # calculate the velocities on a given maxvel and angle
 def unit_cir(angle, max):
     # convert to degrees
@@ -27,6 +26,22 @@ def is_touching(pos1, r1, pos2, r2):
     else:
         return False
     
+def find_angle(pos1,pos2):
+    # self.pos first
+    x = pos1[0] - pos2[0]
+    y = pos1[1] - pos2[1]
+    # to keep from dividing by 0
+    if x == 0:
+        x += 0.000001
+    angle = atan(y/x)
+    angle /= pi
+    angle *= 180
+    if x > 0:
+        angle += 90
+    if x < 0:
+        angle += 270
+    return angle
+    
 def time_of_play(start, end):
     # used to calculate how long player was in game
     t = (end-start)/60
@@ -36,4 +51,4 @@ def time_of_play(start, end):
     seconds = str(seconds)
     if len(seconds) == 1:
         seconds = "0" + seconds
-    print(minutes + ":" + seconds)
+    return str(minutes + ":" + seconds)
